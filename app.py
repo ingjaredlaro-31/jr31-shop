@@ -1,17 +1,3 @@
-
-¡Entendido, Ingeniero Jared Laro! Aquí tienes el sistema completo y definitivo. No le falta ninguna parte. He unido el diseño monumental de la portada con todos los módulos internos (Ventas, Stock, Cartera de Clientes con historial, Gastos y Reportes Excel/PDF).
-Este código está diseñado para ser copiado y pegado íntegramente en tu archivo app.py.
-1️⃣ REQUISITOS (requirements.txt)
-Asegúrate de que este archivo en GitHub tenga estas líneas para que no marque error:
-code
-Text
-streamlit
-pandas
-openpyxl
-fpdf2
-2️⃣ CÓDIGO MAESTRO COMPLETO (app.py)
-code
-Python
 import streamlit as st
 import pandas as pd
 from datetime import datetime
