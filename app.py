@@ -48,6 +48,7 @@ st.markdown("""
         border: 1px solid #415a77;
         box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
         margin-bottom: 15px;
+        color: white !important;
     }
 
     label { color: #FF8C00 !important; font-family: 'Orbitron' !important; font-size: 0.8rem !important; }
@@ -58,33 +59,42 @@ st.markdown("""
         font-family: 'Orbitron' !important;
         border-radius: 5px !important;
         border: none !important;
-        transition: 0.3s;
+        height: 3em !important;
+        width: 100%;
     }
     
     .stButton>button:hover { transform: scale(1.02); box-shadow: 0 0 15px #2E8B57; }
 
     [data-testid="stSidebar"] { background-color: #0b0d17 !important; border-right: 3px solid #FF4500; }
     </style>
-    <div class="ing-signature">DEVELOPED BY ING. JARED LARO // PREMIUM EDITION</div>
+    <div class="ing-signature">DEVELOPED BY ING. JARED LARO // PRO SYSTEM</div>
     """, unsafe_allow_html=True)
 
-# --- INICIALIZACIÓN DE DATOS (REFORZADA) ---
+# --- INICIALIZACIÓN DE DATOS (SUPER BLINDADA) ---
 if 'inv' not in st.session_state:
     st.session_state.inv = pd.DataFrame(columns=["ID", "ARTICULO", "CANTIDAD", "COSTO_ADQ", "PVP"])
 if 'ven' not in st.session_state:
     st.session_state.ven = pd.DataFrame(columns=["FECHA", "CLIENTE", "ARTICULO", "TOTAL", "UTILIDAD", "MODO"])
 if 'cli' not in st.session_state:
-    # Aseguramos que la tabla de clientes siempre tenga estas dos columnas
     st.session_state.cli = pd.DataFrame([{"NOMBRE": "PUBLICO GENERAL", "SALDO_DEUDOR": 0.0}])
 if 'gas' not in st.session_state:
     st.session_state.gas = pd.DataFrame(columns=["FECHA", "CONCEPTO", "MONTO"])
+
+# --- DOBLE CHEQUEO DE COLUMNAS (PARA EVITAR EL KEYERROR) ---
+def verificar_columnas():
+    columnas_necesarias = ["NOMBRE", "SALDO_DEUDOR"]
+    for col in columnas_necesarias:
+        if col not in st.session_state.cli.columns:
+            st.session_state.cli[col] = 0.0 if col == "SALDO_DEUDOR" else "N/A"
+
+verificar_columnas()
 
 # --- ACCESO ---
 if 'log' not in st.session_state: st.session_state.log = False
 
 if not st.session_state.log:
     st.markdown('<p class="logo-text">JR 31 SHOP</p>', unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #2E8B57; font-family: Orbitron; letter-spacing: 5px;'>SISTEMA ERP POS</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #2E8B57; font-family: Orbitron; letter-spacing: 5px;'>ADMINISTRATION TERMINAL</p>", unsafe_allow_html=True)
     
     col1, col_login, col2 = st.columns([1, 1, 1])
     with col_login:
@@ -96,13 +106,13 @@ if not st.session_state.log:
                 st.session_state.log = True
                 st.rerun()
             else:
-                st.error("DENEGADO")
+                st.error("ACCESO DENEGADO")
         st.markdown('</div>', unsafe_allow_html=True)
 else:
     # --- MENÚ ---
     with st.sidebar:
         st.markdown("<h2 style='color: #FF4500; font-family: Orbitron;'>MASTER MENU</h2>", unsafe_allow_html=True)
-        nav = st.radio("MÓDULOS", ["📊 DASHBOARD", "📦 INVENTARIO", "🛒 PUNTO DE VENTA", "👤 CARTERA", "💸 GASTOS", "📝 REPORTES"])
+        nav = st.radio("MÓDULOS", ["📊 DASHBOARD", "📦 INVENTARIO", "🛒 VENTA POS", "👤 CARTERA", "💸 GASTOS", "📝 REPORTES"])
         st.markdown("---")
         if st.button("LOGOUT"):
             st.session_state.log = False
@@ -110,116 +120,108 @@ else:
 
     # --- 1. DASHBOARD ---
     if nav == "📊 DASHBOARD":
-        st.markdown("<h1 style='font-family: Orbitron;'>ANÁLISIS FINANCIERO</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='font-family: Orbitron;'>ESTADÍSTICAS</h1>", unsafe_allow_html=True)
         v_totales = st.session_state.ven['TOTAL'].sum() if not st.session_state.ven.empty else 0
         u_total = st.session_state.ven['UTILIDAD'].sum() if not st.session_state.ven.empty else 0
         g_total = st.session_state.gas['MONTO'].sum() if not st.session_state.gas.empty else 0
-        balance = u_total - g_total
-
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("VENTAS TOTALES", f"${v_totales:,.2f}")
+        
+        c1, c2, c3 = st.columns(3)
+        c1.metric("VENTAS", f"${v_totales:,.2f}")
         c2.metric("UTILIDAD BRUTA", f"${u_total:,.2f}")
-        c3.metric("GASTOS", f"${g_total:,.2f}")
-        c4.metric("BALANCE NETO", f"${balance:,.2f}")
-
-        st.markdown("### 📋 HISTORIAL RECIENTE")
-        st.dataframe(st.session_state.ven.tail(10), use_container_width=True)
+        c3.metric("BALANCE NETO", f"${u_total - g_total:,.2f}")
 
     # --- 2. INVENTARIO ---
     elif nav == "📦 INVENTARIO":
-        st.markdown("<h1 style='font-family: Orbitron;'>GESTIÓN DE ARTÍCULOS</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='font-family: Orbitron;'>STOCK</h1>", unsafe_allow_html=True)
         with st.form("inv_form"):
-            col_a, col_b = st.columns(2)
-            art = col_a.text_input("NOMBRE DEL PRODUCTO")
-            cant = col_b.number_input("CANTIDAD", min_value=1)
-            costo = col_a.number_input("COSTO UNITARIO")
-            pvp = col_b.number_input("PRECIO VENTA")
-            if st.form_submit_button("REGISTRAR ARTÍCULO"):
+            art = st.text_input("ARTICULO")
+            cant = st.number_input("CANTIDAD", min_value=1)
+            costo = st.number_input("COSTO")
+            pvp = st.number_input("PRECIO VENTA")
+            if st.form_submit_button("AÑADIR"):
                 nuevo = pd.DataFrame([{"ID": len(st.session_state.inv)+1, "ARTICULO": art, "CANTIDAD": cant, "COSTO_ADQ": costo, "PVP": pvp}])
                 st.session_state.inv = pd.concat([st.session_state.inv, nuevo], ignore_index=True)
                 st.success("STOCK ACTUALIZADO")
         st.dataframe(st.session_state.inv, use_container_width=True)
 
-    # --- 3. PUNTO DE VENTA ---
-    elif nav == "🛒 PUNTO DE VENTA":
-        st.markdown("<h1 style='font-family: Orbitron;'>TERMINAL POS</h1>", unsafe_allow_html=True)
+    # --- 3. VENTA POS ---
+    elif nav == "🛒 VENTA POS":
+        st.markdown("<h1 style='font-family: Orbitron;'>PUNTO DE VENTA</h1>", unsafe_allow_html=True)
         if st.session_state.inv.empty:
-            st.warning("⚠️ Sin inventario disponible.")
+            st.info("Registre productos en inventario primero.")
         else:
-            with st.form("venta_form"):
-                prod_sel = st.selectbox("PRODUCTO", st.session_state.inv['ARTICULO'])
-                prod_data = st.session_state.inv[st.session_state.inv['ARTICULO'] == prod_sel].iloc[0]
+            with st.form("v_form"):
+                p_sel = st.selectbox("PRODUCTO", st.session_state.inv['ARTICULO'])
                 cliente = st.selectbox("CLIENTE", st.session_state.cli['NOMBRE'])
-                cant_vta = st.number_input("CANTIDAD", min_value=1, max_value=int(prod_data['CANTIDAD']))
+                cant_v = st.number_input("CANTIDAD", min_value=1)
                 modo = st.selectbox("MÉTODO", ["CONTADO", "CRÉDITO"])
                 if st.form_submit_button("VENDER"):
-                    total_vta = prod_data['PVP'] * cant_vta
-                    utilidad = (prod_data['PVP'] - prod_data['COSTO_ADQ']) * cant_vta
-                    nv = pd.DataFrame([{"FECHA": datetime.now().strftime("%d/%m/%Y"), "CLIENTE": cliente, "ARTICULO": prod_sel, "TOTAL": total_vta, "UTILIDAD": utilidad, "MODO": modo}])
+                    data = st.session_state.inv[st.session_state.inv['ARTICULO'] == p_sel].iloc[0]
+                    t_vta = data['PVP'] * cant_v
+                    uti = (data['PVP'] - data['COSTO_ADQ']) * cant_v
+                    nv = pd.DataFrame([{"FECHA": datetime.now().strftime("%d/%m/%Y"), "CLIENTE": cliente, "ARTICULO": p_sel, "TOTAL": t_vta, "UTILIDAD": uti, "MODO": modo}])
                     st.session_state.ven = pd.concat([st.session_state.ven, nv], ignore_index=True)
-                    st.session_state.inv.loc[st.session_state.inv['ARTICULO'] == prod_sel, 'CANTIDAD'] -= cant_vta
+                    st.session_state.inv.loc[st.session_state.inv['ARTICULO'] == p_sel, 'CANTIDAD'] -= cant_v
                     if modo == "CRÉDITO":
-                        st.session_state.cli.loc[st.session_state.cli['NOMBRE'] == cliente, 'SALDO_DEUDOR'] += total_vta
-                    st.success(f"VENTA EXITOSA: ${total_vta}")
+                        st.session_state.cli.loc[st.session_state.cli['NOMBRE'] == cliente, 'SALDO_DEUDOR'] += t_vta
+                    st.success("VENTA REGISTRADA")
 
-    # --- 4. CARTERA (ERROR SOLUCIONADO AQUÍ) ---
+    # --- 4. CARTERA (SISTEMA DE SEGURIDAD ACTIVADO) ---
     elif nav == "👤 CARTERA":
-        st.markdown("<h1 style='font-family: Orbitron;'>CARTERA Y COBRANZA</h1>", unsafe_allow_html=True)
-        col_c1, col_c2 = st.columns(2)
+        st.markdown("<h1 style='font-family: Orbitron;'>CARTERA</h1>", unsafe_allow_html=True)
+        col_1, col_2 = st.columns(2)
         
-        with col_c1:
+        with col_1:
             st.markdown('<div class="carbon-card">', unsafe_allow_html=True)
             st.subheader("NUEVO CLIENTE")
-            nc = st.text_input("NOMBRE COMPLETO")
-            if st.button("REGISTRAR CLIENTE"):
-                if nc:
-                    nuevo_c = pd.DataFrame([{"NOMBRE": nc, "SALDO_DEUDOR": 0.0}])
-                    st.session_state.cli = pd.concat([st.session_state.cli, nuevo_c], ignore_index=True)
-                    st.success("CLIENTE AÑADIDO")
+            nombre_n = st.text_input("NOMBRE COMPLETO")
+            if st.button("REGISTRAR"):
+                if nombre_n:
+                    # Agregamos usando nombres de columna exactos
+                    st.session_state.cli = pd.concat([st.session_state.cli, pd.DataFrame([{"NOMBRE": nombre_n, "SALDO_DEUDOR": 0.0}])], ignore_index=True)
+                    st.success("LISTO")
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
 
-        with col_c2:
+        with col_2:
             st.markdown('<div class="carbon-card">', unsafe_allow_html=True)
-            st.subheader("ABONOS / PAGOS")
+            st.subheader("ABONOS")
             
-            # FILTRO SEGURO PARA EVITAR KEYERROR
-            df_deudores = st.session_state.cli[st.session_state.cli['SALDO_DEUDOR'] > 0]
+            # --- CHEQUEO DE SEGURIDAD ANTES DEL ERROR ---
+            verificar_columnas()
             
-            if df_deudores.empty:
-                st.info("✅ No hay clientes con deuda pendiente.")
+            # Filtramos solo deudores reales
+            deudores_df = st.session_state.cli[st.session_state.cli['SALDO_DEUDOR'] > 0]
+            
+            if deudores_df.empty:
+                st.write("No hay deudas.")
             else:
-                lista_deudores = df_deudores['NOMBRE'].tolist()
-                c_pago = st.selectbox("SELECCIONAR DEUDOR", lista_deudores)
-                m_pago = st.number_input("CANTIDAD A PAGAR", min_value=0.01, max_value=float(st.session_state.cli.loc[st.session_state.cli['NOMBRE'] == c_pago, 'SALDO_DEUDOR'].values[0]))
-                if st.button("APLICAR ABONO"):
+                c_pago = st.selectbox("CLIENTE", deudores_df['NOMBRE'].tolist())
+                m_pago = st.number_input("MONTO ABONO", min_value=0.0)
+                if st.button("ABONAR"):
                     st.session_state.cli.loc[st.session_state.cli['NOMBRE'] == c_pago, 'SALDO_DEUDOR'] -= m_pago
-                    st.success(f"PAGO REGISTRADO PARA {c_pago}")
+                    st.success("ABONO APLICADO")
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
-
-        st.markdown("### 📋 ESTADO DE CUENTA GLOBAL")
+        
         st.dataframe(st.session_state.cli, use_container_width=True)
 
     # --- 5. GASTOS ---
     elif nav == "💸 GASTOS":
-        st.markdown("<h1 style='font-family: Orbitron;'>GASTOS DEL NEGOCIO</h1>", unsafe_allow_html=True)
-        with st.form("gastos_f"):
-            concepto = st.text_input("CONCEPTO")
-            m_gasto = st.number_input("MONTO", min_value=0.0)
-            if st.form_submit_button("REGISTRAR GASTO"):
-                ng = pd.DataFrame([{"FECHA": datetime.now().strftime("%d/%m/%Y"), "CONCEPTO": concepto, "MONTO": m_gasto}])
+        st.markdown("<h1 style='font-family: Orbitron;'>GASTOS</h1>", unsafe_allow_html=True)
+        with st.form("g_form"):
+            con = st.text_input("CONCEPTO")
+            mon = st.number_input("MONTO")
+            if st.form_submit_button("GUARDAR"):
+                ng = pd.DataFrame([{"FECHA": datetime.now().strftime("%d/%m/%Y"), "CONCEPTO": con, "MONTO": mon}])
                 st.session_state.gas = pd.concat([st.session_state.gas, ng], ignore_index=True)
-                st.success("GASTO ANOTADO")
-        st.dataframe(st.session_state.gas, use_container_width=True)
+        st.table(st.session_state.gas)
 
     # --- 6. REPORTES ---
     elif nav == "📝 REPORTES":
-        st.markdown("<h1 style='font-family: Orbitron;'>MASTER REPORTS</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='font-family: Orbitron;'>REPORTES</h1>", unsafe_allow_html=True)
         buf = io.BytesIO()
         with pd.ExcelWriter(buf, engine='openpyxl') as w:
             st.session_state.ven.to_excel(w, index=False, sheet_name='VENTAS')
-            st.session_state.inv.to_excel(w, index=False, sheet_name='INVENTARIO')
             st.session_state.cli.to_excel(w, index=False, sheet_name='CARTERA')
-            st.session_state.gas.to_excel(w, index=False, sheet_name='GASTOS')
-        st.download_button("📥 DESCARGAR EXCEL COMPLETO", buf.getvalue(), f"JR31_LARO_{datetime.now().strftime('%Y%m%d')}.xlsx")
+        st.download_button("📥 DESCARGAR EXCEL", buf.getvalue(), f"JR31_LARO.xlsx")
