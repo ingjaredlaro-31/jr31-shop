@@ -5,26 +5,24 @@ from fpdf import FPDF
 import io
 import os
 
-# --- 1. CORE ENGINE CONFIGURATION ---
+# --- 1. CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(
     page_title="JR 31 SHOP | BY ING. JARED LARO",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- 2. SUPREME EXECUTIVE STYLE (CSS) ---
+# --- 2. ESTILO SUPREME CYBER-EXECUTIVE (CSS) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Montserrat:wght@100;400;700;900&display=swap');
     
-    /* Background: Deep Executive Emerald & Black */
     .stApp { 
         background: radial-gradient(circle at center, #0a2114 0%, #000000 100%);
         background-attachment: fixed;
         color: #FFFFFF !important; 
     }
 
-    /* TOP RIGHT HEADER: THE ENGINEER */
     .header-jared {
         position: absolute; top: 15px; right: 40px;
         color: #2E8B57; font-family: 'Orbitron', sans-serif;
@@ -32,7 +30,6 @@ st.markdown("""
         text-shadow: 0 0 15px #2E8B57; z-index: 1000;
     }
 
-    /* BOTTOM LEFT FOOTER: OFFICIAL SIGNATURE */
     .footer-info {
         position: fixed; bottom: 20px; left: 30px;
         color: rgba(255, 255, 255, 0.4);
@@ -40,7 +37,7 @@ st.markdown("""
         font-size: 12px; z-index: 1000; line-height: 1.6; font-weight: 900;
     }
 
-    /* MONUMENTAL STORE NAME (LOGO) */
+    /* NOMBRE DE TIENDA MONUMENTAL (LOGIN) */
     .monumental-logo {
         font-family: 'Orbitron', sans-serif;
         font-size: 15vw;
@@ -49,7 +46,7 @@ st.markdown("""
         background: linear-gradient(180deg, #FFFFFF 20%, #FF8C00 60%, #FF4500 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-top: 20px;
+        margin-top: 50px;
         margin-bottom: -15px;
         filter: drop-shadow(0 15px 35px rgba(0,0,0,1));
         line-height: 0.8;
@@ -57,25 +54,12 @@ st.markdown("""
         text-transform: uppercase;
     }
 
-    .main-subtitle {
-        text-align: center; 
-        color: #2E8B57; 
-        font-family: 'Orbitron', sans-serif; 
-        letter-spacing: 15px; 
-        font-weight: 900;
-        font-size: 2.5rem;
-        margin-top: 10px;
-        margin-bottom: 60px;
-        text-transform: uppercase;
-    }
-
-    /* INPUT FIELDS GIGANTIC */
+    /* INPUTS GIGANTES */
     div[data-baseweb="input"] {
         background-color: rgba(255, 255, 255, 0.05) !important;
         border: 2px solid #FF8C00 !important;
         border-radius: 10px !important;
         height: 80px !important;
-        margin-bottom: 15px !important;
     }
     
     input {
@@ -85,241 +69,182 @@ st.markdown("""
         text-align: center !important;
     }
 
-    /* ACCESS BUTTON */
     .stButton>button {
         background: linear-gradient(90deg, #FF4500 0%, #FF8C00 100%) !important;
-        color: white !important; 
-        font-family: 'Orbitron' !important;
-        font-weight: 900 !important; 
-        border-radius: 5px !important; 
-        border: none !important;
-        height: 4em !important; 
-        width: 100%; 
-        transition: 0.5s;
+        color: white !important; font-family: 'Orbitron' !important;
+        font-weight: 900 !important; border-radius: 5px !important;
+        height: 4em !important; width: 100%; transition: 0.5s;
         font-size: 2rem !important;
-        letter-spacing: 15px;
-        margin-top: 40px;
         text-transform: uppercase;
         box-shadow: 0 15px 40px rgba(255, 69, 0, 0.4) !important;
     }
-    .stButton>button:hover { 
-        background: #2E8B57 !important;
-        box-shadow: 0 0 60px #2E8B57 !important;
-        transform: scale(1.02);
-    }
 
-    /* EXECUTIVE CARDS FOR DASHBOARD */
+    /* DASHBOARD CARDS */
     .metric-container {
         background: rgba(255, 255, 255, 0.03);
-        border-radius: 20px;
-        padding: 30px;
-        border-left: 10px solid #FF8C00;
-        box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+        border-radius: 20px; padding: 30px;
+        border-top: 5px solid #FF8C00;
         text-align: center;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.5);
     }
+    .metric-value { font-family: 'Orbitron', sans-serif; font-size: 4rem; font-weight: 900; color: #FFFFFF; }
 
-    .metric-value {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 4.5rem;
-        font-weight: 900;
-        color: #FFFFFF;
-    }
-
-    /* SIDEBAR */
     [data-testid="stSidebar"] {
         background-color: #0b0d17 !important;
         border-right: 5px solid #FF4500;
     }
-    [data-testid="stSidebar"] * { color: white !important; }
 
     #MainMenu, footer, header { visibility: hidden; }
-    label { color: #FF8C00 !important; font-family: 'Orbitron' !important; font-weight: 900 !important; font-size: 1.1rem !important; text-transform: uppercase;}
+    label { color: #FF8C00 !important; font-family: 'Orbitron' !important; font-weight: 900 !important; font-size: 1.1rem !important; }
     </style>
     
     <div class="header-jared">ING. JARED LARO</div>
     <div class="footer-info">
         ING JARED LARA RODRIGUEZ | 918'125'5735<br>
-        SISTEMA DE ADMINISTRACIÓN JR 31 SHOP - EXCLUSIVE LICENSE
+        SISTEMA ERP JR 31 SHOP - EXCLUSIVE BUSINESS EDITION
     </div>
     """, unsafe_allow_html=True)
 
-# --- 3. DATABASE LOGIC (ENGLISH BACKEND) ---
-def start_app_database():
-    if 'inventory' not in st.session_state:
-        st.session_state.inventory = pd.DataFrame(columns=["ARTICULO", "STOCK", "COSTO", "PVP"])
-    if 'sales' not in st.session_state:
-        st.session_state.sales = pd.DataFrame(columns=["FECHA", "CLIENTE", "ARTICULO", "TOTAL", "GANANCIA", "MODO"])
-    if 'clients' not in st.session_state:
-        st.session_state.clients = pd.DataFrame([{"NOMBRE": "VENTA MOSTRADOR (EFECTIVO)", "DEUDA": 0.0}])
-    if 'expenses' not in st.session_state:
-        st.session_state.expenses = pd.DataFrame(columns=["FECHA", "CONCEPTO", "MONTO"])
-    if 'auth' not in st.session_state: st.session_state.auth = False
-    if 'is_admin' not in st.session_state: st.session_state.is_admin = False
+# --- 3. INICIALIZACIÓN DE DATOS ---
+if 'inventory_db' not in st.session_state:
+    st.session_state.inventory_db = pd.DataFrame(columns=["ARTICULO", "STOCK", "COSTO", "PVP"])
+if 'sales_history' not in st.session_state:
+    st.session_state.sales_history = pd.DataFrame(columns=["FECHA", "CLIENTE", "ARTICULO", "TOTAL", "UTILIDAD", "MODO"])
+if 'client_base' not in st.session_state:
+    st.session_state.client_base = pd.DataFrame([{"NOMBRE": "VENTA MOSTRADOR", "DEUDA": 0.0}])
+if 'expenses_db' not in st.session_state:
+    st.session_state.expenses_db = pd.DataFrame(columns=["FECHA", "CATEGORIA", "CONCEPTO", "MONTO"])
+if 'authenticated' not in st.session_state: st.session_state.authenticated = False
+if 'admin_privileges' not in st.session_state: st.session_state.admin_privileges = False
 
-start_app_database()
-
-# --- 4. EXPORT ENGINE (PDF) ---
-def generate_pdf_report():
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", "B", 22)
-    pdf.set_text_color(255, 69, 0)
-    pdf.cell(0, 20, "JR 31 SHOP - BUSINESS INTELLIGENCE", ln=True, align='C')
-    pdf.set_font("Arial", "I", 10)
-    pdf.set_text_color(46, 139, 87)
-    pdf.cell(0, 10, f"Propiedad de Ing. Jared Laro | {datetime.now().strftime('%d/%m/%Y %H:%M')}", ln=True, align='C')
-    pdf.ln(10)
-    
-    v_total = st.session_state.sales['TOTAL'].sum() if not st.session_state.sales.empty else 0
-    pdf.set_font("Arial", "B", 14)
-    pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 10, f"ESTADO DE RESULTADOS:", ln=True)
-    pdf.set_font("Arial", "", 12)
-    pdf.cell(0, 8, f"- Ventas Totales: ${v_total:,.2f}", ln=True)
-    pdf.cell(0, 8, f"- Capital en Cartera: ${st.session_state.clients['DEUDA'].sum():,.2f}", ln=True)
-    
-    pdf.ln(10)
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "DETALLE DE INVENTARIO:", ln=True)
-    pdf.set_font("Arial", "", 10)
-    for _, r in st.session_state.inventory.iterrows():
-        pdf.cell(0, 7, f"- {r['ARTICULO']}: {r['STOCK']} pzs", ln=True)
-    
-    return pdf.output()
-
-# --- 5. INTERFACE LOGIC ---
-
-# LOGIN SCREEN
-if not st.session_state.auth:
-    # EL NOMBRE NO SE VE PEQUEÑO NUNCA MÁS
+# --- 4. CONTROL DE ACCESO ---
+if not st.session_state.authenticated:
     st.markdown('<p class="monumental-logo">JR 31 SHOP</p>', unsafe_allow_html=True)
-    st.markdown('<p class="main-subtitle">SISTEMA DE ADMINISTRACIÓN Y VENTA</p>', unsafe_allow_html=True)
-    
-    col_l, col_center, col_r = st.columns([1, 1.2, 1])
-    with col_center:
+    st.markdown('<h2 style="text-align:center; font-family:Orbitron; letter-spacing:10px;">ACCESO AL SISTEMA</h2>', unsafe_allow_html=True)
+    col_l, col_form, col_r = st.columns([1, 1.2, 1])
+    with col_form:
         u_id = st.text_input("ADMIN ID")
         u_pw = st.text_input("ACCESS KEY", type="password")
         if st.button("ACCEDER"):
             if u_id == "admin_jr31" and u_pw == "JR31_2024_Chiapas":
-                st.session_state.auth = True
+                st.session_state.authenticated = True
                 st.rerun()
             else: st.error("DENEGADO")
 else:
-    # MAIN SYSTEM
+    # --- 5. NAVEGACIÓN ---
     with st.sidebar:
         st.markdown("<h1 style='color:#FF8C00; font-family:Orbitron; text-align:center;'>JR 31 MASTER</h1>", unsafe_allow_html=True)
-        st.markdown("---")
-        
-        if not st.session_state.is_admin:
-            m_code = st.text_input("🔓 CÓDIGO MAESTRO", type="password")
-            if st.button("DESBLOQUEAR GERENCIA"):
-                if m_code == "291329": st.session_state.is_admin = True; st.rerun()
+        if not st.session_state.admin_privileges:
+            code = st.text_input("🔓 CÓDIGO MAESTRO", type="password")
+            if st.button("ACTIVAR PRIVILEGIOS"):
+                if code == "291329":
+                    st.session_state.admin_privileges = True
+                    st.rerun()
         else:
             st.success("🔒 GERENCIA ACTIVA")
-            if st.button("CERRAR PRIVILEGIOS"): st.session_state.is_admin = False; st.rerun()
+            if st.button("CERRAR PRIVILEGIOS"):
+                st.session_state.admin_privileges = False
+                st.rerun()
 
         st.markdown("---")
-        menu = ["🛒 TERMINAL VENTA", "👤 CARTERA CLIENTES", "📊 DASHBOARD"]
-        if st.session_state.is_admin:
-            menu += ["📦 GESTIÓN STOCK", "💸 GASTOS", "📝 REPORTES"]
+        menu_options = ["🛒 TERMINAL VENTA", "👤 CARTERA CLIENTES", "📊 DASHBOARD"]
+        if st.session_state.admin_privileges:
+            menu_options += ["📦 GESTIÓN STOCK", "💸 GASTOS", "📝 REPORTES"]
         
-        choice = st.radio("SELECCIONE MÓDULO", menu)
+        choice = st.radio("SELECCIONE MÓDULO", menu_options)
         if st.button("SALIR DEL SISTEMA"):
-            st.session_state.auth = False
+            st.session_state.authenticated = False
             st.rerun()
 
-    # MODULE 1: DASHBOARD
+    # --- 6. MÓDULOS ---
+
+    # --- DASHBOARD ---
     if choice == "📊 DASHBOARD":
-        st.markdown("<h1 style='font-family:Orbitron; text-align:center; font-size:4rem;'>PANEL DE CONTROL</h1>", unsafe_allow_html=True)
-        v = st.session_state.sales['TOTAL'].sum() if not st.session_state.sales.empty else 0
-        d = st.session_state.clients['DEUDA'].sum() if not st.session_state.clients.empty else 0
+        st.markdown("<h1 style='font-family:Orbitron; text-align:center; font-size:4rem;'>INTELIGENCIA COMERCIAL</h1>", unsafe_allow_html=True)
+        v = st.session_state.sales_history['TOTAL'].sum() if not st.session_state.sales_history.empty else 0
+        g = st.session_state.expenses_db['MONTO'].sum() if not st.session_state.expenses_db.empty else 0
         
         c1, c2 = st.columns(2)
-        with c1:
-            st.markdown(f'<div class="metric-container"><p style="color:#FF8C00; font-family:Orbitron; font-size:1.5rem;">VENTAS ACUMULADAS</p><p class="metric-value">${v:,.0f}</p></div>', unsafe_allow_html=True)
-        with c2:
-            st.markdown(f'<div class="metric-container" style="border-left: 10px solid #2E8B57;"><p style="color:#2E8B57; font-family:Orbitron; font-size:1.5rem;">SALDO EN CARTERA</p><p class="metric-value" style="color:#2E8B57;">${d:,.0f}</p></div>', unsafe_allow_html=True)
-        
-        # ALERTAS DE STOCK
-        if st.session_state.is_admin:
-            st.markdown("### 🚨 ALERTAS DE SUMINISTRO (STOCK BAJO)")
-            low_stock = st.session_state.inventory[st.session_state.inventory['STOCK'] <= 5]
-            if not low_stock.empty:
-                st.warning(f"Tienes {len(low_stock)} productos por agotarse.")
-                st.dataframe(low_stock, use_container_width=True)
+        with c1: st.markdown(f'<div class="metric-container"><p style="color:#FF8C00; font-family:Orbitron;">INGRESOS TOTALES</p><p class="metric-value">${v:,.0f}</p></div>', unsafe_allow_html=True)
+        with c2: st.markdown(f'<div class="metric-container" style="border-top:5px solid #FF4500;"><p style="color:#FF4500; font-family:Orbitron;">EGRESOS TOTALES</p><p class="metric-value" style="color:#FF4500;">${g:,.0f}</p></div>', unsafe_allow_html=True)
 
-    # MODULE 2: POS
+    # --- TERMINAL VENTA ---
     elif choice == "🛒 TERMINAL VENTA":
-        st.markdown("<h1 style='font-family:Orbitron;'>NUEVA VENTA</h1>", unsafe_allow_html=True)
-        if st.session_state.inventory.empty: st.info("Registre mercancía en GESTIÓN STOCK primero.")
+        st.markdown("<h1 style='font-family:Orbitron;'>TERMINAL DE VENTA</h1>", unsafe_allow_html=True)
+        if st.session_state.inventory_db.empty: st.info("Sin inventario.")
         else:
-            with st.form("pos_form"):
-                it = st.selectbox("ARTÍCULO", st.session_state.inventory['ARTICULO'])
-                cl = st.selectbox("CLIENTE", st.session_state.clients['NOMBRE'])
-                qt = st.number_input("CANTIDAD", min_value=1)
-                md = st.selectbox("MODO PAGO", ["CONTADO", "CRÉDITO"])
-                if st.form_submit_button("COMPLETAR VENTA"):
-                    row = st.session_state.inventory[st.session_state.inventory['ARTICULO'] == it].iloc[0]
-                    total = row['PVP'] * qt
-                    uti = (row['PVP'] - row['COSTO']) * qt
-                    # UPDATE DATA
-                    st.session_state.sales = pd.concat([st.session_state.sales, pd.DataFrame([{"FECHA": datetime.now().strftime("%d/%m/%y"), "CLIENTE": cl, "ARTICULO": it, "TOTAL": total, "GANANCIA": uti, "MODO": md}])], ignore_index=True)
-                    st.session_state.inventory.loc[st.session_state.inventory['ARTICULO'] == it, 'STOCK'] -= qt
-                    if md == "CRÉDITO": st.session_state.clients.loc[st.session_state.clients['NOMBRE'] == cl, 'DEUDA'] += total
-                    st.success("Venta Exitosa")
+            with st.form("pos"):
+                art = st.selectbox("PRODUCTO", st.session_state.inventory_db['ARTICULO'])
+                cli = st.selectbox("CLIENTE", st.session_state.client_base['NOMBRE'])
+                qty = st.number_input("CANTIDAD", min_value=1)
+                if st.form_submit_button("FINALIZAR VENTA"):
+                    row = st.session_state.inventory_db[st.session_state.inventory_db['ARTICULO'] == art].iloc[0]
+                    total = row['PVP'] * qty
+                    st.session_state.sales_history = pd.concat([st.session_state.sales_history, pd.DataFrame([{"FECHA": datetime.now().strftime("%d/%m/%y"), "CLIENTE": cli, "ARTICULO": art, "TOTAL": total, "UTILIDAD": (row['PVP']-row['COSTO'])*qty, "MODO": "CONTADO"}])], ignore_index=True)
+                    st.session_state.inventory_db.loc[st.session_state.inventory_db['ARTICULO'] == art, 'STOCK'] -= qty
+                    st.success(f"Venta registrada: ${total}")
 
-    # MODULE 3: CLIENTS
+    # --- CARTERA ---
     elif choice == "👤 CARTERA CLIENTES":
         st.markdown("<h1 style='font-family:Orbitron;'>CARTERA</h1>", unsafe_allow_html=True)
         t1, t2 = st.tabs(["📋 EXPEDIENTES", "➕ NUEVO CLIENTE"])
-        with t1:
-            search_cl = st.text_input("🔍 BUSCAR POR NOMBRE")
-            filtered_clients = st.session_state.clients[st.session_state.clients['NOMBRE'].str.contains(search_cl, case=False)]
-            sel_c = st.selectbox("RESULTADO", filtered_clients['NOMBRE'])
-            c_data = st.session_state.clients[st.session_state.clients['NOMBRE'] == sel_c].iloc[0]
-            
-            c_ab1, c_ab2 = st.columns(2)
-            c_ab1.metric("DEUDA", f"${c_data['DEUDA']:,.2f}")
-            with c_ab2:
-                abono = st.number_input("REGISTRAR ABONO", min_value=0.0)
-                if st.button("PAGAR"):
-                    st.session_state.clients.loc[st.session_state.clients['NOMBRE'] == sel_c, 'DEUDA'] -= abono
-                    st.rerun()
-            
-            st.markdown("---")
-            st.subheader("Historial de Compras")
-            if not st.session_state.sales.empty:
-                st.dataframe(st.session_state.sales[st.session_state.sales['CLIENTE'] == sel_c], use_container_width=True)
-
         with t2:
-            new_n = st.text_input("NOMBRE COMPLETO")
+            n_name = st.text_input("NOMBRE COMPLETO")
             if st.button("GUARDAR"):
-                st.session_state.clients = pd.concat([st.session_state.clients, pd.DataFrame([{"NOMBRE": new_n, "DEUDA": 0.0}])], ignore_index=True)
-                st.rerun()
+                st.session_state.client_base = pd.concat([st.session_state.client_base, pd.DataFrame([{"NOMBRE": n_name, "DEUDA": 0.0}])], ignore_index=True)
+                st.success("Guardado.")
 
-    # MODULE 4: STOCK (ADMIN)
-    elif choice == "📦 GESTIÓN STOCK" and st.session_state.is_admin:
+    # --- GESTIÓN STOCK ---
+    elif choice == "📦 GESTIÓN STOCK" and st.session_state.admin_privileges:
         st.markdown("<h1 style='font-family:Orbitron;'>INVENTARIO</h1>", unsafe_allow_html=True)
         with st.form("stk", clear_on_submit=True):
-            a_n = st.text_input("PRODUCTO")
-            a_s = st.number_input("CANTIDAD", min_value=1)
-            a_c = st.number_input("COSTO ADQ")
-            a_p = st.number_input("PRECIO VENTA")
+            a = st.text_input("ARTICULO")
+            s = st.number_input("STOCK", min_value=1)
+            c = st.number_input("COSTO")
+            p = st.number_input("PVP")
             if st.form_submit_button("ACTUALIZAR STOCK"):
-                st.session_state.inventory = pd.concat([st.session_state.inventory, pd.DataFrame([{"ARTICULO": a_n, "STOCK": a_s, "COSTO": a_c, "PVP": a_p}])], ignore_index=True)
-        st.dataframe(st.session_state.inventory, use_container_width=True)
+                st.session_state.inventory_db = pd.concat([st.session_state.inventory_db, pd.DataFrame([{"ARTICULO": a, "STOCK": s, "COSTO": c, "PVP": p}])], ignore_index=True)
+        st.dataframe(st.session_state.inventory_db, use_container_width=True)
 
-    # MODULE 6: REPORTS
-    elif choice == "📝 REPORTES" and st.session_state.is_admin:
-        st.markdown("<h1 style='font-family:Orbitron;'>REPORTES</h1>", unsafe_allow_html=True)
-        col_r1, col_r2 = st.columns(2)
-        with col_r1:
-            buf = io.BytesIO()
-            with pd.ExcelWriter(buf, engine='openpyxl') as w:
-                st.session_state.sales.to_excel(w, index=False, sheet_name='VENTAS')
-                st.session_state.inventory.to_excel(w, index=False, sheet_name='STOCK')
-            st.download_button("📥 EXCEL COMPLETO", buf.getvalue(), f"JR31_MASTER_{datetime.now().strftime('%d%m%y')}.xlsx")
-        with col_r2:
-            if st.button("📄 GENERAR PDF"):
-                p_bytes = generate_pdf_report()
-                st.download_button("📥 DESCARGAR PDF", p_bytes, "Reporte_Gerencial.pdf")
+    # --- MÓDULO CORREGIDO: GASTOS ---
+    elif choice == "💸 GASTOS" and st.session_state.admin_privileges:
+        st.markdown("<h1 style='font-family:Orbitron; text-align:center;'>CONTROL DE EGRESOS Y LOGÍSTICA</h1>", unsafe_allow_html=True)
+        
+        # Resumen Rápido de Gastos
+        total_gastado = st.session_state.expenses_db['MONTO'].sum() if not st.session_state.expenses_db.empty else 0
+        st.markdown(f'<div class="metric-container" style="border-top:5px solid #2E8B57; margin-bottom:40px;"><p style="color:#2E8B57; font-family:Orbitron;">TOTAL GASTOS OPERATIVOS</p><p class="metric-value" style="color:#2E8B57;">${total_gastado:,.2f}</p></div>', unsafe_allow_html=True)
+
+        col_g1, col_g2 = st.columns([1, 1.5])
+        
+        with col_g1:
+            st.markdown("### 📥 REGISTRAR GASTO")
+            with st.form("form_gastos", clear_on_submit=True):
+                cat_g = st.selectbox("CATEGORÍA", ["PALLETS", "OFICINA", "LOGÍSTICA", "SERVICIOS", "VARIOS"])
+                con_g = st.text_input("CONCEPTO (Ej. Compra de tarimas, papelería...)")
+                mon_g = st.number_input("MONTO DEL GASTO ($)", min_value=0.1, step=1.0)
+                if st.form_submit_button("GUARDAR GASTO EN SISTEMA"):
+                    nuevo_gasto = pd.DataFrame([{
+                        "FECHA": datetime.now().strftime("%d/%m/%Y"),
+                        "CATEGORIA": cat_g,
+                        "CONCEPTO": con_g,
+                        "MONTO": mon_g
+                    }])
+                    st.session_state.expenses_db = pd.concat([st.session_state.expenses_db, nuevo_gasto], ignore_index=True)
+                    st.success("✅ Gasto registrado correctamente.")
+                    st.rerun()
+
+        with col_g2:
+            st.markdown("### 📋 HISTORIAL DE GASTOS")
+            if not st.session_state.expenses_db.empty:
+                st.dataframe(st.session_state.expenses_db, use_container_width=True)
+            else:
+                st.info("No hay gastos registrados en este periodo.")
+
+    # --- REPORTES ---
+    elif choice == "📝 REPORTES" and st.session_state.admin_privileges:
+        st.markdown("<h1 style='font-family:Orbitron;'>CENTRO DE AUDITORÍA</h1>", unsafe_allow_html=True)
+        buf = io.BytesIO()
+        with pd.ExcelWriter(buf, engine='openpyxl') as w:
+            st.session_state.sales_history.to_excel(w, index=False, sheet_name='VENTAS')
+            st.session_state.expenses_db.to_excel(w, index=False, sheet_name='GASTOS')
+        st.download_button("📥 DESCARGAR REPORTE EXCEL", buf.getvalue(), f"JR31_LARO_MASTER.xlsx")
