@@ -2,205 +2,192 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import io
+import os
 
 # --- CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(page_title="JR 31 SHOP - Premium POS", layout="wide", page_icon="🍊")
+st.set_page_config(page_title="JR 31 SHOP | Premium Suite", layout="wide", page_icon="🍊")
 
-# --- DISEÑO "NOVEDOSO" (CSS AVANZADO) ---
+# --- DISEÑO DE ALTO NIVEL CON TU LOGO ---
 st.markdown("""
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&display=swap" rel="stylesheet">
     <style>
-    /* Fuente Moderna */
-    html, body, [class*="css"]  {
-        font-family: 'Poppins', sans-serif;
-    }
-
-    /* Fondo de la App */
+    * { font-family: 'Montserrat', sans-serif; }
+    
     .stApp {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
 
-    /* Títulos con Estilo */
-    h1 {
-        color: #1a5e20 !important;
-        font-weight: 800 !important;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    /* EFECTO CRISTAL (Glassmorphism) */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        padding: 40px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        color: #1e272e !important;
     }
 
-    /* Etiquetas de texto (Labels) */
-    label {
-        color: #2c3e50 !important;
+    /* ESTILO DE TEXTOS */
+    label, p, span, .stMarkdown {
+        color: #1e272e !important;
         font-weight: 600 !important;
-        font-size: 14px !important;
-        margin-bottom: 5px;
+    }
+    
+    h1, h2, h3 {
+        color: #1B5E20 !important;
+        font-weight: 900 !important;
     }
 
-    /* Botones Premium Naranja */
+    /* BOTONES PREMIUM */
     .stButton>button {
-        background: linear-gradient(135deg, #FF8C00 0%, #FF4500 100%) !important;
+        background: linear-gradient(135deg, #FF4500 0%, #FF8C00 100%) !important;
         color: white !important;
-        border-radius: 12px !important;
         border: none !important;
-        padding: 12px 20px !important;
-        font-weight: 600 !important;
+        border-radius: 15px !important;
+        padding: 12px 25px !important;
+        font-weight: 700 !important;
         transition: all 0.3s ease !important;
-        box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3) !important;
+        box-shadow: 0 8px 15px rgba(255, 69, 0, 0.2) !important;
         width: 100%;
     }
 
     .stButton>button:hover {
-        transform: scale(1.02);
-        box-shadow: 0 6px 20px rgba(255, 140, 0, 0.5) !important;
-        background: linear-gradient(135deg, #2E8B57 0%, #1a5e20 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 20px rgba(27, 94, 32, 0.3) !important;
+        background: linear-gradient(135deg, #2E8B57 0%, #1B5E20 100%) !important;
     }
 
-    /* Tarjetas Blancas (Cards) */
-    div[data-testid="stVerticalBlock"] > div:has(div.stFrame) {
-        background-color: white;
-        padding: 25px;
-        border-radius: 20px;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.05);
-    }
-
-    /* Sidebar Estilizada */
+    /* SIDEBAR CUSTOM */
     [data-testid="stSidebar"] {
-        background-color: #1a5e20 !important;
-        border-right: 5px solid #FF8C00;
+        background: linear-gradient(180deg, #1B5E20 0%, #0D2E11 100%) !important;
+        border-right: 8px solid #FF4500;
     }
-    [data-testid="stSidebar"] * {
-        color: white !important;
-    }
+    [data-testid="stSidebar"] * { color: white !important; }
 
-    /* Input Fields */
-    input {
-        border-radius: 10px !important;
-        border: 1px solid #dce1e7 !important;
+    /* CONTENEDOR DE LOGO */
+    .logo-container {
+        text-align: center;
+        margin-bottom: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
 
+# --- CARGAR LOGO ---
+def mostrar_logo(ancho=200):
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=ancho)
+    else:
+        st.title("🍊 JR 31 SHOP")
+
 # --- INICIALIZACIÓN DE DATOS ---
-if 'inv' not in st.session_state:
-    st.session_state.inv = pd.DataFrame(columns=["Producto", "Stock", "Costo USD", "Inversión MXN", "Precio Venta"])
-if 'ven' not in st.session_state:
-    st.session_state.ven = pd.DataFrame(columns=["Fecha", "Cliente", "Total", "Tipo"])
-if 'cli' not in st.session_state:
-    st.session_state.cli = pd.DataFrame([{"Nombre": "Público General", "Deuda": 0.0}])
+if 'inv' not in st.session_state: st.session_state.inv = pd.DataFrame(columns=["Producto", "Stock", "USD_Unit", "MXN_Total", "Precio_Vta"])
+if 'ven' not in st.session_state: st.session_state.ven = pd.DataFrame(columns=["Fecha", "Cliente", "Monto", "Metodo"])
+if 'cli' not in st.session_state: st.session_state.cli = pd.DataFrame([{"Nombre": "Venta de Mostrador", "Deuda": 0.0}])
 
-# --- ACCESO / LOGIN ---
-if 'ingresado' not in st.session_state:
-    st.session_state.ingresado = False
+# --- ACCESO ---
+if 'log' not in st.session_state: st.session_state.log = False
 
-if not st.session_state.ingresado:
-    col1, col_login, col2 = st.columns([1, 1.5, 1])
+if not st.session_state.log:
+    col1, col_login, col2 = st.columns([1, 1.2, 1])
     with col_login:
-        st.markdown("<h1 style='text-align: center;'>🍊 JR 31 SHOP</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #666;'>Premium Management System</p>", unsafe_allow_html=True)
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+        mostrar_logo(ancho=250)
+        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; font-size: 1.5rem;'>TERMINAL PRIVADA</h2>", unsafe_allow_html=True)
         
-        with st.container():
-            u = st.text_input("Usuario")
-            p = st.text_input("Contraseña", type="password")
-            if st.button("DESBLOQUEAR SISTEMA"):
-                if u == "admin_jr31" and p == "JR31_2024_Chiapas":
-                    st.session_state.ingresado = True
-                    st.rerun()
-                else:
-                    st.error("Credenciales Incorrectas")
+        u = st.text_input("ID de Administrador")
+        p = st.text_input("Clave de Acceso", type="password")
+        
+        if st.button("DESBLOQUEAR SISTEMA"):
+            if u == "admin_jr31" and p == "JR31_2024_Chiapas":
+                st.session_state.log = True
+                st.rerun()
+            else:
+                st.error("Acceso Denegado")
+        st.markdown('</div>', unsafe_allow_html=True)
+
 else:
-    # --- MENÚ LATERAL ---
+    # --- MENÚ CON LOGO ---
     with st.sidebar:
-        st.markdown("<h2 style='text-align: center;'>JR 31</h2>", unsafe_allow_html=True)
+        st.markdown('<div style="text-align: center;">', unsafe_allow_html=True)
+        mostrar_logo(ancho=150)
+        st.markdown('</div>', unsafe_allow_html=True)
         st.markdown("---")
-        opc = st.radio("NAVEGACIÓN", ["🏠 Dashboard", "📦 Compras / Stock", "💰 Punto de Venta", "👥 Clientes/Crédito", "📊 Reportes"])
+        nav = st.radio("GESTIÓN EMPRESARIAL", ["📊 Panel de Control", "📦 Logística de Importación", "💸 Terminal de Ventas", "👥 Cartera de Clientes", "📂 Reportes Master"])
         st.markdown("---")
-        if st.button("🔒 CERRAR SESIÓN"):
-            st.session_state.ingresado = False
+        if st.button("CERRAR SESIÓN"):
+            st.session_state.log = False
             st.rerun()
 
-    # --- DASHBOARD ---
-    if opc == "🏠 Dashboard":
-        st.title("🚀 Resumen de Negocio")
+    # --- CONTENIDO ---
+    if nav == "📊 Panel de Control":
+        st.title("📊 Resumen Ejecutivo")
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
-        
-        with c1:
-            st.metric("VENTAS TOTALES", f"${st.session_state.ven['Total'].sum():,.2f}")
-        with c2:
-            st.metric("INVERSIÓN USA", f"${st.session_state.inv['Costo USD'].sum():,.2f} USD")
-        with c3:
-            st.metric("CRÉDITOS ACTIVOS", f"${st.session_state.cli['Deuda'].sum():,.2f}")
-        
-        st.markdown("### 📋 Deudores Pendientes")
+        c1.metric("FLUJO DE VENTAS", f"${st.session_state.ven['Monto'].sum():,.2f} MXN")
+        c2.metric("CAPITAL USD", f"${st.session_state.inv['USD_Unit'].sum():,.2f} USD")
+        c3.metric("DEUDA TOTAL", f"${st.session_state.cli['Deuda'].sum():,.2f} MXN")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.subheader("🚨 Cuentas por Cobrar Pendientes")
         st.dataframe(st.session_state.cli[st.session_state.cli['Deuda'] > 0], use_container_width=True)
 
-    # --- INVENTARIO ---
-    elif opc == "📦 Compras / Stock":
-        st.title("📦 Compras USA y Stock")
-        with st.expander("➕ REGISTRAR NUEVA ENTRADA DE MERCANCÍA"):
-            with st.form("inv_form"):
-                p_name = st.text_input("Nombre del Artículo")
-                p_qty = st.number_input("Cantidad Comprada", min_value=1)
-                p_usd = st.number_input("Costo Unitario (USD)")
-                p_tasa = st.number_input("Tipo de Cambio (MXN)", value=18.50)
-                p_vta = st.number_input("Precio de Venta Sugerido (MXN)")
-                
-                if st.form_submit_button("GUARDAR EN NUBE"):
-                    inv_mxn = p_qty * p_usd * p_tasa
-                    nueva_fila = pd.DataFrame([{"Producto": p_name, "Stock": p_qty, "Costo USD": p_usd, "Inversión MXN": inv_mxn, "Precio Venta": p_vta}])
-                    st.session_state.inv = pd.concat([st.session_state.inv, nueva_fila], ignore_index=True)
-                    st.success("✅ Stock Actualizado")
-        
+    elif nav == "📦 Logística de Importación":
+        st.title("📦 Logística e Inventario USA")
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        with st.form("logistica"):
+            col_a, col_b = st.columns(2)
+            p_n = col_a.text_input("Descripción del Producto")
+            p_q = col_b.number_input("Cantidad Recibida", min_value=1)
+            p_u = col_a.number_input("Costo Unitario (USD)")
+            p_t = col_b.number_input("Tipo de Cambio", value=18.50)
+            p_v = col_a.number_input("Precio Venta Sugerido (MXN)")
+            if st.form_submit_button("INGRESAR A STOCK"):
+                costo_mxn = p_q * p_u * p_t
+                nueva_f = pd.DataFrame([{"Producto": p_n, "Stock": p_q, "USD_Unit": p_u, "MXN_Total": costo_mxn, "Precio_Vta": p_v}])
+                st.session_state.inv = pd.concat([st.session_state.inv, nueva_f], ignore_index=True)
+                st.success("Mercancía registrada en el sistema.")
+        st.markdown('</div>', unsafe_allow_html=True)
         st.dataframe(st.session_state.inv, use_container_width=True)
 
-    # --- VENTAS ---
-    elif opc == "💰 Punto de Venta":
-        st.title("💰 Registrar Venta")
-        col_a, col_b = st.columns(2)
+    elif nav == "💸 Terminal de Ventas":
+        st.title("💸 Terminal de Ventas")
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        c_v1, c_v2 = st.columns(2)
+        cli_v = c_v1.selectbox("Seleccionar de Cartera", st.session_state.cli['Nombre'])
+        mon_v = c_v2.number_input("Total Transacción (MXN)")
+        met_v = c_v1.selectbox("Condición de Pago", ["Contado", "Crédito JR 31"])
         
-        cliente_sel = col_a.selectbox("Seleccione Cliente", st.session_state.cli['Nombre'])
-        monto_venta = col_b.number_input("Total a Cobrar (MXN)", min_value=0.0)
-        tipo_pago = col_a.selectbox("Forma de Pago", ["💵 Contado", "💳 Crédito"])
-        
-        if st.button("🚀 FINALIZAR Y GENERAR VENTA"):
-            nueva_v = pd.DataFrame([{"Fecha": datetime.now().strftime("%d/%m/%Y %H:%M"), "Cliente": cliente_sel, "Total": monto_venta, "Tipo": tipo_pago}])
+        if st.button("PROCESAR VENTA"):
+            nueva_v = pd.DataFrame([{"Fecha": datetime.now().strftime("%d/%m/%Y"), "Cliente": cli_v, "Monto": mon_v, "Metodo": met_v}])
             st.session_state.ven = pd.concat([st.session_state.ven, nueva_v], ignore_index=True)
-            
-            if "Crédito" in tipo_pago:
-                st.session_state.cli.loc[st.session_state.cli['Nombre'] == cliente_sel, 'Deuda'] += monto_venta
-            
+            if "Crédito" in met_v:
+                st.session_state.cli.loc[st.session_state.cli['Nombre'] == cli_v, 'Deuda'] += mon_v
             st.balloons()
-            st.success(f"Venta registrada para {cliente_sel}")
+            st.success("Operación Exitosa")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- CLIENTES ---
-    elif opc == "👥 Clientes/Crédito":
-        st.title("👥 Gestión de Clientes")
-        with st.form("cli_form"):
-            n_clie = st.text_input("Nombre Completo del Cliente")
-            if st.form_submit_button("REGISTRAR CLIENTE"):
-                st.session_state.cli = pd.concat([st.session_state.cli, pd.DataFrame([{"Nombre": n_clie, "Deuda": 0.0}])], ignore_index=True)
-                st.success("Cliente Agregado")
-        
-        st.markdown("### 📑 Listado de Saldos y Deudas")
+    elif nav == "👥 Cartera de Clientes":
+        st.title("👥 Gestión de Cartera")
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        with st.form("clientes"):
+            n_c = st.text_input("Nombre Completo del Cliente")
+            if st.form_submit_button("DAR DE ALTA"):
+                st.session_state.cli = pd.concat([st.session_state.cli, pd.DataFrame([{"Nombre": n_c, "Deuda": 0.0}])], ignore_index=True)
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
         st.dataframe(st.session_state.cli, use_container_width=True)
 
-    # --- REPORTES ---
-    elif opc == "📊 Reportes":
-        st.title("📊 Reportes y Respaldo")
-        st.write("Genera tu archivo Excel para auditoría o respaldo.")
-        
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+    elif nav == "📂 Reportes Master":
+        st.title("📂 Generación de Reportes")
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        buf = io.BytesIO()
+        with pd.ExcelWriter(buf, engine='openpyxl') as writer:
             st.session_state.ven.to_excel(writer, index=False, sheet_name='Ventas')
             st.session_state.inv.to_excel(writer, index=False, sheet_name='Stock')
-            st.session_state.cli.to_excel(writer, index=False, sheet_name='Clientes')
-        
-        st.download_button(
-            label="📥 DESCARGAR EXCEL COMPLETO (JR 31)",
-            data=output.getvalue(),
-            file_name=f"JR31_SHOP_{datetime.now().strftime('%Y%m%d')}.xlsx",
-            mime="application/vnd.ms-excel"
-        )
+            st.session_state.cli.to_excel(writer, index=False, sheet_name='Deudores')
+        st.download_button(label="📥 DESCARGAR REPORTE MAESTRO (EXCEL)", data=buf.getvalue(), file_name=f"JR31_MASTER_REPORT.xlsx")
+        st.markdown('</div>', unsafe_allow_html=True)
