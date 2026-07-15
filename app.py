@@ -4,36 +4,87 @@ from datetime import datetime
 import io
 
 # --- CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(page_title="JR 31 SHOP - Punto de Venta", layout="wide", page_icon="🍊")
+st.set_page_config(page_title="JR 31 SHOP - Premium POS", layout="wide", page_icon="🍊")
 
-# --- DISEÑO PROFESIONAL MEJORADO ---
+# --- DISEÑO "NOVEDOSO" (CSS AVANZADO) ---
 st.markdown("""
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+
     <style>
-    .stApp { background-color: #f4f7f6; }
-    h1, h2, h3 { color: #1a5e20 !important; font-family: 'Arial'; }
-    
-    /* Color de las etiquetas (Labels) para que sean visibles */
-    label { color: #333333 !important; font-weight: bold !important; }
-
-    /* Botones Naranja JR31 */
-    .stButton>button {
-        background-color: #FF8C00;
-        color: white !important;
-        border-radius: 8px;
-        border: none;
-        font-weight: bold;
-        width: 100%;
-        height: 3em;
+    /* Fuente Moderna */
+    html, body, [class*="css"]  {
+        font-family: 'Poppins', sans-serif;
     }
-    .stButton>button:hover { background-color: #2E8B57; }
 
-    /* Sidebar Verde JR31 */
-    [data-testid="stSidebar"] { background-color: #1a5e20; }
-    [data-testid="stSidebar"] * { color: white !important; }
+    /* Fondo de la App */
+    .stApp {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+
+    /* Títulos con Estilo */
+    h1 {
+        color: #1a5e20 !important;
+        font-weight: 800 !important;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* Etiquetas de texto (Labels) */
+    label {
+        color: #2c3e50 !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        margin-bottom: 5px;
+    }
+
+    /* Botones Premium Naranja */
+    .stButton>button {
+        background: linear-gradient(135deg, #FF8C00 0%, #FF4500 100%) !important;
+        color: white !important;
+        border-radius: 12px !important;
+        border: none !important;
+        padding: 12px 20px !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3) !important;
+        width: 100%;
+    }
+
+    .stButton>button:hover {
+        transform: scale(1.02);
+        box-shadow: 0 6px 20px rgba(255, 140, 0, 0.5) !important;
+        background: linear-gradient(135deg, #2E8B57 0%, #1a5e20 100%) !important;
+    }
+
+    /* Tarjetas Blancas (Cards) */
+    div[data-testid="stVerticalBlock"] > div:has(div.stFrame) {
+        background-color: white;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+    }
+
+    /* Sidebar Estilizada */
+    [data-testid="stSidebar"] {
+        background-color: #1a5e20 !important;
+        border-right: 5px solid #FF8C00;
+    }
+    [data-testid="stSidebar"] * {
+        color: white !important;
+    }
+
+    /* Input Fields */
+    input {
+        border-radius: 10px !important;
+        border: 1px solid #dce1e7 !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- INICIALIZACIÓN DE DATOS (Persistencia en Sesión) ---
+# --- INICIALIZACIÓN DE DATOS ---
 if 'inv' not in st.session_state:
     st.session_state.inv = pd.DataFrame(columns=["Producto", "Stock", "Costo USD", "Inversión MXN", "Precio Venta"])
 if 'ven' not in st.session_state:
@@ -41,82 +92,115 @@ if 'ven' not in st.session_state:
 if 'cli' not in st.session_state:
     st.session_state.cli = pd.DataFrame([{"Nombre": "Público General", "Deuda": 0.0}])
 
-# --- SISTEMA DE ACCESO ---
+# --- ACCESO / LOGIN ---
 if 'ingresado' not in st.session_state:
     st.session_state.ingresado = False
 
 if not st.session_state.ingresado:
-    st.title("🍊 JR 31 SHOP")
-    st.subheader("Inicie sesión para administrar su tienda")
-    
-    col_l, col_r = st.columns(2)
-    with col_l:
-        u = st.text_input("Usuario Administrador")
-        p = st.text_input("Contraseña", type="password")
-        if st.button("INGRESAR"):
-            if u == "admin_jr31" and p == "JR31_2024_Chiapas":
-                st.session_state.ingresado = True
-                st.rerun()
-            else:
-                st.error("❌ Datos incorrectos")
+    col1, col_login, col2 = st.columns([1, 1.5, 1])
+    with col_login:
+        st.markdown("<h1 style='text-align: center;'>🍊 JR 31 SHOP</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #666;'>Premium Management System</p>", unsafe_allow_html=True)
+        
+        with st.container():
+            u = st.text_input("Usuario")
+            p = st.text_input("Contraseña", type="password")
+            if st.button("DESBLOQUEAR SISTEMA"):
+                if u == "admin_jr31" and p == "JR31_2024_Chiapas":
+                    st.session_state.ingresado = True
+                    st.rerun()
+                else:
+                    st.error("Credenciales Incorrectas")
 else:
     # --- MENÚ LATERAL ---
     with st.sidebar:
-        st.header("MENÚ JR 31")
-        opc = st.radio("Ir a:", ["📊 Resumen", "📦 Inventario USA", "💰 Vender", "👥 Clientes", "📥 Reportes"])
+        st.markdown("<h2 style='text-align: center;'>JR 31</h2>", unsafe_allow_html=True)
         st.markdown("---")
-        if st.button("Cerrar Sesión"):
+        opc = st.radio("NAVEGACIÓN", ["🏠 Dashboard", "📦 Compras / Stock", "💰 Punto de Venta", "👥 Clientes/Crédito", "📊 Reportes"])
+        st.markdown("---")
+        if st.button("🔒 CERRAR SESIÓN"):
             st.session_state.ingresado = False
             st.rerun()
 
-    # --- LÓGICA DE SECCIONES ---
-    if opc == "📊 Resumen":
-        st.title("📊 Resumen de JR 31 SHOP")
+    # --- DASHBOARD ---
+    if opc == "🏠 Dashboard":
+        st.title("🚀 Resumen de Negocio")
         c1, c2, c3 = st.columns(3)
-        c1.metric("Ventas Totales", f"${st.session_state.ven['Total'].sum():,.2f}")
-        c2.metric("Inversión (USD)", f"${st.session_state.inv['Costo USD'].sum():,.2f}")
-        c3.metric("Deuda de Clientes", f"${st.session_state.cli['Deuda'].sum():,.2f}")
         
-        st.subheader("Deudores Actuales")
-        st.table(st.session_state.cli[st.session_state.cli['Deuda'] > 0])
+        with c1:
+            st.metric("VENTAS TOTALES", f"${st.session_state.ven['Total'].sum():,.2f}")
+        with c2:
+            st.metric("INVERSIÓN USA", f"${st.session_state.inv['Costo USD'].sum():,.2f} USD")
+        with c3:
+            st.metric("CRÉDITOS ACTIVOS", f"${st.session_state.cli['Deuda'].sum():,.2f}")
+        
+        st.markdown("### 📋 Deudores Pendientes")
+        st.dataframe(st.session_state.cli[st.session_state.cli['Deuda'] > 0], use_container_width=True)
 
-    elif opc == "📦 Inventario USA":
-        st.title("📦 Compras USA")
-        with st.form("inv_form"):
-            prod = st.text_input("Nombre del Producto")
-            cant = st.number_input("Cantidad", min_value=1)
-            cusd = st.number_input("Costo Unitario (USD)")
-            tasa = st.number_input("Tipo de Cambio (MXN)", value=18.50)
-            p_vta = st.number_input("Precio de Venta (MXN)")
-            if st.form_submit_button("GUARDAR EN INVENTARIO"):
-                inv_mxn = cusd * tasa * cant
-                nuevo = pd.DataFrame([{"Producto": prod, "Stock": cant, "Costo USD": cusd, "Inversión MXN": inv_mxn, "Precio Venta": p_vta}])
-                st.session_state.inv = pd.concat([st.session_state.inv, nuevo], ignore_index=True)
-                st.success("Producto Registrado")
-        st.dataframe(st.session_state.inv)
+    # --- INVENTARIO ---
+    elif opc == "📦 Compras / Stock":
+        st.title("📦 Compras USA y Stock")
+        with st.expander("➕ REGISTRAR NUEVA ENTRADA DE MERCANCÍA"):
+            with st.form("inv_form"):
+                p_name = st.text_input("Nombre del Artículo")
+                p_qty = st.number_input("Cantidad Comprada", min_value=1)
+                p_usd = st.number_input("Costo Unitario (USD)")
+                p_tasa = st.number_input("Tipo de Cambio (MXN)", value=18.50)
+                p_vta = st.number_input("Precio de Venta Sugerido (MXN)")
+                
+                if st.form_submit_button("GUARDAR EN NUBE"):
+                    inv_mxn = p_qty * p_usd * p_tasa
+                    nueva_fila = pd.DataFrame([{"Producto": p_name, "Stock": p_qty, "Costo USD": p_usd, "Inversión MXN": inv_mxn, "Precio Venta": p_vta}])
+                    st.session_state.inv = pd.concat([st.session_state.inv, nueva_fila], ignore_index=True)
+                    st.success("✅ Stock Actualizado")
+        
+        st.dataframe(st.session_state.inv, use_container_width=True)
 
-    elif opc == "💰 Vender":
+    # --- VENTAS ---
+    elif opc == "💰 Punto de Venta":
         st.title("💰 Registrar Venta")
-        clie = st.selectbox("Cliente", st.session_state.cli['Nombre'])
-        mont = st.number_input("Monto Total (MXN)")
-        tipo = st.selectbox("Forma de Pago", ["Contado", "Crédito"])
-        if st.button("REGISTRAR VENTA"):
-            nv = pd.DataFrame([{"Fecha": datetime.now(), "Cliente": clie, "Total": mont, "Tipo": tipo}])
-            st.session_state.ven = pd.concat([st.session_state.ven, nv], ignore_index=True)
-            if tipo == "Crédito":
-                st.session_state.cli.loc[st.session_state.cli['Nombre'] == clie, 'Deuda'] += mont
-            st.success("Venta Exitosa")
+        col_a, col_b = st.columns(2)
+        
+        cliente_sel = col_a.selectbox("Seleccione Cliente", st.session_state.cli['Nombre'])
+        monto_venta = col_b.number_input("Total a Cobrar (MXN)", min_value=0.0)
+        tipo_pago = col_a.selectbox("Forma de Pago", ["💵 Contado", "💳 Crédito"])
+        
+        if st.button("🚀 FINALIZAR Y GENERAR VENTA"):
+            nueva_v = pd.DataFrame([{"Fecha": datetime.now().strftime("%d/%m/%Y %H:%M"), "Cliente": cliente_sel, "Total": monto_venta, "Tipo": tipo_pago}])
+            st.session_state.ven = pd.concat([st.session_state.ven, nueva_v], ignore_index=True)
+            
+            if "Crédito" in tipo_pago:
+                st.session_state.cli.loc[st.session_state.cli['Nombre'] == cliente_sel, 'Deuda'] += monto_venta
+            
+            st.balloons()
+            st.success(f"Venta registrada para {cliente_sel}")
 
-    elif opc == "👥 Clientes":
-        st.title("👥 Clientes")
-        n_c = st.text_input("Nombre del Cliente Nuevo")
-        if st.button("Agregar Cliente"):
-            st.session_state.cli = pd.concat([st.session_state.cli, pd.DataFrame([{"Nombre": n_c, "Deuda": 0.0}])], ignore_index=True)
-        st.dataframe(st.session_state.cli)
+    # --- CLIENTES ---
+    elif opc == "👥 Clientes/Crédito":
+        st.title("👥 Gestión de Clientes")
+        with st.form("cli_form"):
+            n_clie = st.text_input("Nombre Completo del Cliente")
+            if st.form_submit_button("REGISTRAR CLIENTE"):
+                st.session_state.cli = pd.concat([st.session_state.cli, pd.DataFrame([{"Nombre": n_clie, "Deuda": 0.0}])], ignore_index=True)
+                st.success("Cliente Agregado")
+        
+        st.markdown("### 📑 Listado de Saldos y Deudas")
+        st.dataframe(st.session_state.cli, use_container_width=True)
 
-    elif opc == "📥 Reportes":
-        st.title("📥 Descargar Reportes")
-        buf = io.BytesIO()
-        with pd.ExcelWriter(buf, engine='openpyxl') as w:
-            st.session_state.ven.to_excel(w, index=False, sheet_name='Ventas')
-        st.download_button("Descargar Excel de Ventas", buf.getvalue(), "Reporte_JR31.xlsx")
+    # --- REPORTES ---
+    elif opc == "📊 Reportes":
+        st.title("📊 Reportes y Respaldo")
+        st.write("Genera tu archivo Excel para auditoría o respaldo.")
+        
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            st.session_state.ven.to_excel(writer, index=False, sheet_name='Ventas')
+            st.session_state.inv.to_excel(writer, index=False, sheet_name='Stock')
+            st.session_state.cli.to_excel(writer, index=False, sheet_name='Clientes')
+        
+        st.download_button(
+            label="📥 DESCARGAR EXCEL COMPLETO (JR 31)",
+            data=output.getvalue(),
+            file_name=f"JR31_SHOP_{datetime.now().strftime('%Y%m%d')}.xlsx",
+            mime="application/vnd.ms-excel"
+        )
