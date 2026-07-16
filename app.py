@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. DISEÑO SUPREME EXECUTIVE (CSS) ---
+# --- 2. ESTILO SUPREME EXECUTIVE (CSS) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Montserrat:wght@400;700;900&display=swap');
@@ -51,13 +51,13 @@ st.markdown("""
 
     /* MENÚ LATERAL XL */
     [data-testid="stSidebar"] { background-color: #0b0d17 !important; border-right: 5px solid #FF8C00; }
-    div[role="radiogroup"] label { font-size: 1.8rem !important; font-weight: 900 !important; color: #FFFFFF !important; margin-bottom: 20px !important; }
+    div[role="radiogroup"] label { font-size: 1.7rem !important; font-weight: 900 !important; color: #FFFFFF !important; margin-bottom: 20px !important; }
 
     /* DASHBOARD CARDS */
     .exec-card {
         background: rgba(255, 255, 255, 0.04); border-radius: 15px; padding: 25px;
         text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border-top: 4px solid #FF8C00;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
     .metric-title { font-family: 'Orbitron'; font-size: 0.9rem; color: #FF8C00; letter-spacing: 1px; text-transform: uppercase; }
     .metric-value { font-family: 'Montserrat'; font-size: 2.8rem; font-weight: 900; color: #FFFFFF; }
@@ -70,7 +70,7 @@ st.markdown("""
         background: linear-gradient(90deg, #FF4500 0%, #FF8C00 100%) !important;
         color: white !important; font-family: 'Orbitron' !important;
         font-weight: 900 !important; border-radius: 5px !important;
-        height: 3.5em !important; width: 100%; transition: 0.5s; font-size: 1.8rem !important;
+        height: 3.5em !important; width: 100%; transition: 0.5s;
     }
     .stButton>button:hover { background: #2E8B57 !important; box-shadow: 0 0 60px #2E8B57 !important; }
 
@@ -80,38 +80,22 @@ st.markdown("""
     <div class="jared-header">ING. JARED LARO</div>
     """, unsafe_allow_html=True)
 
-# --- 3. INICIALIZACIÓN DE DATOS BLINDADA ---
+# --- 3. INICIALIZACIÓN DE DATOS (BLINDADA) ---
 if 'inv_db' not in st.session_state:
     st.session_state.inv_db = pd.DataFrame(columns=["ARTICULO", "STOCK", "COSTO_USA", "COSTO_TJ", "PVP_JR31", "VENDIDOS"])
 if 'sales_db' not in st.session_state:
     st.session_state.sales_db = pd.DataFrame(columns=["FECHA", "CLIENTE", "ARTICULO", "CANTIDAD", "TOTAL", "UTILIDAD"])
 if 'clients_db' not in st.session_state:
-    st.session_state.clients_db = pd.DataFrame(columns=["ID", "NOMBRE", "DIRECCION", "TELEFONO", "DEUDA", "LIMITE"])
-    st.session_state.clients_db = pd.concat([st.session_state.clients_db, pd.DataFrame([{"ID": "JR-000", "NOMBRE": "VENTA MOSTRADOR", "DIRECCION": "N/A", "TELEFONO": "N/A", "DEUDA": 0.0, "LIMITE": 0.0}])], ignore_index=True)
+    st.session_state.clients_db = pd.DataFrame(columns=["ID", "NOMBRE", "DIRECCION", "TELEFONO", "DEUDA"])
+    # Cliente default
+    st.session_state.clients_db = pd.concat([st.session_state.clients_db, pd.DataFrame([{"ID": "JR-000", "NOMBRE": "VENTA MOSTRADOR", "DIRECCION": "N/A", "TELEFONO": "N/A", "DEUDA": 0.0}])], ignore_index=True)
 if 'expenses_db' not in st.session_state:
     st.session_state.expenses_db = pd.DataFrame(columns=["FECHA", "CATEGORIA", "CONCEPTO", "MONTO"])
 if 'cart' not in st.session_state: st.session_state.cart = []
 if 'auth' not in st.session_state: st.session_state.auth = False
 if 'is_admin' not in st.session_state: st.session_state.is_admin = False
 
-# --- 4. MOTOR PDF ---
-def generate_pdf():
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", "B", 20)
-    pdf.set_text_color(255, 69, 0)
-    pdf.cell(0, 15, "JR 31 SHOP - REPORTE GERENCIAL", ln=True, align='C')
-    pdf.set_font("Arial", "I", 10)
-    pdf.set_text_color(46, 139, 87)
-    pdf.cell(0, 10, f"Propiedad de Ing. Jared Laro | {datetime.now().strftime('%d/%m/%Y %H:%M')}", ln=True, align='C')
-    pdf.ln(10)
-    pdf.set_text_color(0, 0, 0)
-    pdf.set_font("Arial", "B", 14)
-    v = st.session_state.sales_db['TOTAL'].sum() if not st.session_state.sales_db.empty else 0
-    pdf.cell(0, 10, f"TOTAL VENTAS: ${v:,.2f} MXN", ln=True)
-    return pdf.output()
-
-# --- 5. PANTALLA DE ACCESO ---
+# --- 4. ACCESO ---
 if not st.session_state.auth:
     st.markdown('<p class="logo-giant">JR 31 SHOP</p>', unsafe_allow_html=True)
     st.markdown('<h2 style="text-align:center; font-family:Orbitron; letter-spacing:10px; color:#2E8B57;">SISTEMA ERP PROFESIONAL</h2>', unsafe_allow_html=True)
@@ -125,10 +109,9 @@ if not st.session_state.auth:
                 st.rerun()
             else: st.error("DENEGADO")
 else:
-    # --- 6. MENÚ LATERAL ---
+    # --- 5. MENÚ LATERAL ---
     with st.sidebar:
         st.markdown("<h1 style='color:#FF8C00; font-family:Orbitron; text-align:center; font-size:1.8rem;'>JR 31 SHOP</h1>", unsafe_allow_html=True)
-        st.markdown("---")
         if not st.session_state.is_admin:
             cod = st.text_input("🔓 CÓDIGO MAESTRO", type="password")
             if st.button("ACTIVAR ADMIN"):
@@ -138,12 +121,14 @@ else:
             if st.button("CERRAR PRIVILEGIOS"): st.session_state.is_admin = False; st.rerun()
 
         st.markdown("---")
-        modulos = ["📊 DASHBOARD", "🛒 TERMINAL VENTA", "👤 CARTERA CLIENTES"]
-        if st.session_state.is_admin: modulos += ["📦 GESTIÓN STOCK", "💸 GASTOS", "📝 REPORTES"]
-        nav = st.sidebar.radio("SISTEMA", modulos)
+        m = ["📊 DASHBOARD", "🛒 TERMINAL VENTA", "👤 CARTERA CLIENTES"]
+        if st.session_state.is_admin: m += ["📦 GESTIÓN STOCK", "💸 GASTOS", "📝 REPORTES"]
+        nav = st.sidebar.radio("SISTEMA", m)
         if st.button("SALIR"): st.session_state.auth = False; st.rerun()
 
-    # --- 7. DASHBOARD PANORÁMICO ---
+    # --- 6. MÓDULOS ---
+
+    # --- DASHBOARD ---
     if nav == "📊 DASHBOARD":
         st.markdown("<h1 style='font-family:Orbitron; text-align:center;'>PANORAMA COMERCIAL</h1>", unsafe_allow_html=True)
         v_t = st.session_state.sales_db['TOTAL'].sum() if not st.session_state.sales_db.empty else 0
@@ -158,96 +143,83 @@ else:
         with c2: st.markdown(f'<div class="exec-card" style="border-top:4px solid #2E8B57;"><p class="metric-title">💰 GANANCIA</p><p class="metric-value" style="color:#2E8B57;">${u_t:,.0f}</p></div>', unsafe_allow_html=True)
         with c3: st.markdown(f'<div class="exec-card"><p class="metric-title">👥 CARTERA</p><p class="metric-value" style="color:#FF4500;">${d_t:,.0f}</p></div>', unsafe_allow_html=True)
         
-        st.markdown("<br>", unsafe_allow_html=True)
         c4, c5, c6 = st.columns(3)
         with c4: st.markdown(f'<div class="exec-card" style="border-top:4px solid #FFFFFF;"><p class="metric-title">📦 PIEZAS STOCK</p><p class="metric-value">{pzs:,.0f}</p></div>', unsafe_allow_html=True)
         with c5: st.markdown(f'<div class="exec-card" style="border-top:4px solid #FFFFFF;"><p class="metric-title">📉 INVERSIÓN TJ</p><p class="metric-value">${inv_tj:,.0f}</p></div>', unsafe_allow_html=True)
         with c6: st.markdown(f'<div class="exec-card" style="border-top:4px solid #FFFFFF;"><p class="metric-title">🇺🇸 COSTO USA</p><p class="metric-value">${inv_usa:,.0f}</p></div>', unsafe_allow_html=True)
 
-    # --- 8. GESTIÓN STOCK (CORREGIDO) ---
+    # --- CARTERA (REAJUSTADA Y FUNCIONAL) ---
+    elif nav == "👤 CARTERA CLIENTES":
+        st.markdown("<h1 style='font-family:Orbitron;'>CARTERA Y EXPEDIENTES</h1>", unsafe_allow_html=True)
+        t1, t2 = st.tabs(["📊 EXPEDIENTES Y PAGOS", "👤 ALTA DE CLIENTE"])
+        with t1:
+            if not st.session_state.clients_db.empty:
+                c_sel = st.selectbox("BUSCAR CLIENTE", st.session_state.clients_db['NOMBRE'])
+                dat = st.session_state.clients_db[st.session_state.clients_db['NOMBRE'] == c_sel].iloc[0]
+                col_ex1, col_ex2 = st.columns(2)
+                with col_ex1:
+                    st.markdown(f"""<div style='background:rgba(255,255,255,0.05); padding:20px; border-radius:10px; border:1px solid #FF8C00;'>
+                    <p style='color:#FF8C00; font-family:Orbitron;'>FICHA TÉCNICA:</p>
+                    <p><b>ID:</b> {dat['ID']}</p><p><b>DIR:</b> {dat['DIRECCION']}</p><p><b>TEL:</b> {dat['TELEFONO']}</p></div>""", unsafe_allow_html=True)
+                with col_ex2:
+                    st.metric("DEUDA", f"${dat['DEUDA']:,.2f}")
+                    ab = st.number_input("ABONAR ($)", min_value=0.0)
+                    if st.button("REGISTRAR PAGO"):
+                        st.session_state.clients_db.loc[st.session_state.clients_db['NOMBRE'] == c_sel, 'DEUDA'] -= ab
+                        st.success("Abono aplicado."); st.rerun()
+        with t2:
+            with st.form("new_c"):
+                n = st.text_input("NOMBRE COMPLETO"); d = st.text_input("DIRECCIÓN"); t = st.text_input("TELÉFONO")
+                if st.form_submit_button("GUARDAR CLIENTE"):
+                    nid = f"JR-{len(st.session_state.clients_db):03d}"
+                    st.session_state.clients_db = pd.concat([st.session_state.clients_db, pd.DataFrame([{"ID": nid, "NOMBRE": n, "DIRECCION": d, "TELEFONO": t, "DEUDA": 0.0}])], ignore_index=True)
+                    st.success(f"Registrado ID: {nid}"); st.rerun()
+
+    # --- GASTOS (ACTIVOS) ---
+    elif nav == "💸 GASTOS" and st.session_state.is_admin:
+        st.markdown("<h1 style='font-family:Orbitron;'>CONTROL DE GASTOS</h1>", unsafe_allow_html=True)
+        with st.form("g"):
+            cat = st.selectbox("CATEGORÍA", ["PALLETS", "OFICINA", "LOGISTICA", "VARIOS"])
+            con = st.text_input("CONCEPTO"); mon = st.number_input("MONTO ($)")
+            if st.form_submit_button("REGISTRAR"):
+                st.session_state.expenses_db = pd.concat([st.session_state.expenses_db, pd.DataFrame([{"FECHA": datetime.now().strftime("%d/%m/%y"), "CATEGORIA": cat, "CONCEPTO": con, "MONTO": mon}])], ignore_index=True)
+        st.dataframe(st.session_state.expenses_db, use_container_width=True)
+
+    # --- REPORTES ---
+    elif nav == "📝 REPORTES" and st.session_state.is_admin:
+        st.markdown("<h1 style='font-family:Orbitron;'>CENTRO DE REPORTES</h1>", unsafe_allow_html=True)
+        buf = io.BytesIO()
+        with pd.ExcelWriter(buf, engine='openpyxl') as w:
+            st.session_state.sales_db.to_excel(w, index=False, sheet_name='VENTAS')
+            st.session_state.inv_db.to_excel(w, index=False, sheet_name='STOCK')
+        st.download_button("📥 DESCARGAR EXCEL MASTER", buf.getvalue(), "JR31_MASTER.xlsx")
+
+    # --- STOCK (ADMIN) ---
     elif nav == "📦 GESTIÓN STOCK" and st.session_state.is_admin:
-        st.markdown("<h1 style='font-family:Orbitron;'>CONTROL DE INVENTARIO</h1>", unsafe_allow_html=True)
-        
-        # SIEMPRE MOSTRAR LA LISTA ARRIBA
-        st.subheader("📋 LISTA ACTUAL DE PRODUCTOS")
-        if st.session_state.inv_db.empty:
-            st.info("El inventario está vacío.")
-        else:
-            st.dataframe(st.session_state.inv_db, use_container_width=True)
+        st.markdown("<h1 style='font-family:Orbitron;'>INVENTARIO</h1>", unsafe_allow_html=True)
+        with st.form("inv"):
+            art = st.text_input("PRODUCTO"); s = st.number_input("STOCK", min_value=1); cu = st.number_input("COSTO USA"); ct = st.number_input("COSTO TJ"); p = st.number_input("PVP JR31")
+            if st.form_submit_button("GUARDAR"):
+                st.session_state.inv_db = pd.concat([st.session_state.inv_db, pd.DataFrame([{"ARTICULO": art, "STOCK": s, "COSTO_USA": cu, "COSTO_TJ": ct, "PVP_JR31": p}])], ignore_index=True)
+        st.dataframe(st.session_state.inv_db, use_container_width=True)
 
-        st.markdown("---")
-        
-        # PESTAÑAS DE ACCIÓN
-        t_alta, t_edit = st.tabs(["📥 DAR DE ALTA NUEVO", "✏️ EDITAR O ELIMINAR"])
-        
-        with t_alta:
-            with st.form("alta_inv", clear_on_submit=True):
-                col1, col2 = st.columns(2)
-                n = col1.text_input("NOMBRE DEL ARTÍCULO")
-                s = col2.number_input("STOCK INICIAL", min_value=1)
-                cu = col1.number_input("COSTO USA (USD)")
-                ct = col2.number_input("COSTO REAL (TJ)")
-                p = col1.number_input("PVP JR31")
-                if st.form_submit_button("GUARDAR EN SISTEMA"):
-                    st.session_state.inv_db = pd.concat([st.session_state.inv_db, pd.DataFrame([{"ARTICULO": n, "STOCK": s, "COSTO_USA": cu, "COSTO_TJ": ct, "PVP_JR31": p, "VENDIDOS": 0}])], ignore_index=True)
-                    st.success("Articulo Registrado."); st.rerun()
-
-        with t_edit:
-            if not st.session_state.inv_db.empty:
-                art_edit = st.selectbox("SELECCIONAR ARTÍCULO PARA MODIFICAR", st.session_state.inv_db['ARTICULO'])
-                idx = st.session_state.inv_db[st.session_state.inv_db['ARTICULO'] == art_edit].index[0]
-                with st.form("edit_inv"):
-                    col_e1, col_e2 = st.columns(2)
-                    new_q = col_e1.number_input("STOCK", value=int(st.session_state.inv_db.at[idx, 'STOCK']))
-                    new_p = col_e2.number_input("PVP JR31", value=float(st.session_state.inv_db.at[idx, 'PVP_JR31']))
-                    
-                    btn_upd, btn_del = st.columns(2)
-                    if btn_upd.form_submit_button("💾 ACTUALIZAR"):
-                        st.session_state.inv_db.at[idx, 'STOCK'] = new_q
-                        st.session_state.inv_db.at[idx, 'PVP_JR31'] = new_p
-                        st.success("Cambios Guardados."); st.rerun()
-                    if btn_del.form_submit_button("🗑️ ELIMINAR ARTÍCULO"):
-                        st.session_state.inv_db = st.session_state.inv_db.drop(idx).reset_index(drop=True)
-                        st.warning("Artículo Borrado."); st.rerun()
-
-    # --- 9. TERMINAL VENTA ---
+    # --- TERMINAL VENTA ---
     elif nav == "🛒 TERMINAL VENTA":
         st.markdown("<h1 style='font-family:Orbitron;'>PUNTO DE VENTA</h1>", unsafe_allow_html=True)
-        col_pos1, col_pos2 = st.columns([1, 1.2])
-        with col_pos1:
-            bus = st.text_input("🔍 BUSCAR ARTÍCULO")
-            f = st.session_state.inv_db[st.session_state.inv_db['ARTICULO'].str.contains(bus, case=False)]
-            with st.form("cart"):
-                it = st.selectbox("PRODUCTO", f['ARTICULO']) if not f.empty else st.selectbox("PRODUCTO", ["N/A"])
+        if st.session_state.inv_db.empty: st.info("Registre stock.")
+        else:
+            with st.form("v"):
+                p = st.selectbox("PRODUCTO", st.session_state.inv_db['ARTICULO'])
+                cl = st.selectbox("CLIENTE", st.session_state.clients_db['NOMBRE'])
                 qt = st.number_input("CANTIDAD", min_value=1)
-                if st.form_submit_button("➕ AÑADIR"):
-                    data = st.session_state.inv_db[st.session_state.inv_db['ARTICULO'] == it].iloc[0]
-                    st.session_state.cart.append({"ART": it, "QTY": qt, "PVP": data['PVP_JR31'], "COSTO": data['COSTO_TJ'], "SUB": data['PVP_JR31']*qt})
-        with col_pos2:
-            if st.session_state.cart:
-                df_c = pd.DataFrame(st.session_state.cart)
-                st.table(df_c[["ART", "QTY", "SUB"]])
-                if st.button("✅ COBRAR TICKET"):
-                    for i in st.session_state.cart:
-                        st.session_state.sales_db = pd.concat([st.session_state.sales_db, pd.DataFrame([{"FECHA": datetime.now().strftime("%d/%m/%y"), "CLIENTE": "MOSTRADOR", "ARTICULO": i['ART'], "CANTIDAD": i['QTY'], "TOTAL": i['SUB'], "UTILIDAD": (i['PVP']-i['COSTO'])*i['QTY']}])], ignore_index=True)
-                        st.session_state.inv_db.loc[st.session_state.inv_db['ARTICULO'] == i['ART'], 'STOCK'] -= i['QTY']
-                    st.session_state.cart = []; st.balloons(); st.rerun()
+                if st.form_submit_button("VENDER"):
+                    row = st.session_state.inv_db[st.session_state.inv_db['ARTICULO'] == p].iloc[0]
+                    t = row['PVP_JR31'] * qt
+                    st.session_state.sales_db = pd.concat([st.session_state.sales_db, pd.DataFrame([{"FECHA": datetime.now().strftime("%d/%m/%y"), "CLIENTE": cl, "TOTAL": t, "UTILIDAD": (row['PVP_JR31']-row['COSTO_TJ'])*qt}])], ignore_index=True)
+                    st.session_state.inv_db.loc[st.session_state.inv_db['ARTICULO'] == p, 'STOCK'] -= qt
+                    st.success(f"Venta registrada: ${t}"); st.rerun()
 
-    # --- 10. REPORTES ---
-    elif nav == "📝 REPORTES" and st.session_state.is_admin:
-        st.markdown("<h1 style='font-family:Orbitron;'>CENTRO DE AUDITORÍA</h1>", unsafe_allow_html=True)
-        col_r1, col_r2 = st.columns(2)
-        with col_r1:
-            buf = io.BytesIO()
-            with pd.ExcelWriter(buf, engine='openpyxl') as w:
-                st.session_state.sales_db.to_excel(w, index=False, sheet_name='VENTAS')
-                st.session_state.inv_db.to_excel(w, index=False, sheet_name='STOCK')
-            st.download_button("📥 DESCARGAR EXCEL COMPLETO", buf.getvalue(), f"JR31_MASTER.xlsx")
-        with col_r2:
-            if st.button("📄 GENERAR PDF"):
-                st.download_button("📥 DESCARGAR PDF", generate_pdf(), "JR31_Reporte.pdf")
-
-# --- 11. PIE DE PÁGINA ---
+# --- 8. PIE DE PÁGINA CENTRADO ---
 st.markdown(f"""
     <div class="footer-centered">
         <p><b>ING. JARED LARO</b></p>
