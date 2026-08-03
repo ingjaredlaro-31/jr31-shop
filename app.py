@@ -1959,7 +1959,7 @@ function shell(html){
       <main>${html}
         <footer><div class="n">Capri Restoration Services Inc</div><div class="s">REPORTS WORKS</div>
         <div class="s" style="margin-top:9px;letter-spacing:.14em">JULIO IBARRIA · ING. JARED RODRÍGUEZ</div>
-        <div class="s" style="margin-top:6px;opacity:.7">v68 · sin categoría</div></footer>
+        <div class="s" style="margin-top:6px;opacity:.7">v69 · sin categoría</div></footer>
       </main>
       ${EDIT()?`<button class="fab" id="fab" title="Nuevo">+</button><div id="fabm"></div>`:''}
       ${esTec?`<nav>${tabs.map(([k,t])=>`<button data-v="${k}" class="${V===k?'on':''}">${svgIC(k)}${t}${k==='pend'&&PEND?'<span class="dot"></span>':''}</button>`).join('')}</nav>`:''}
@@ -2846,7 +2846,7 @@ function pintaGuiado(){
   }
 
   $('#sheet').innerHTML=`<div class="sheet"><div class="sheet-head">
-    <div><div class="mono" style="font-size:11px;color:#C3D6F7">${G.modo==='intake'?'LEVANTAMIENTO INICIAL':esc(G.job.folio)+' · '+(G.tipo==='inicial'?'INICIAL':'SEGUIMIENTO')} · PASO ${G.paso+1} DE ${n}</div>
+    <div><div class="mono" style="font-size:11px;color:#C3D6F7">${G.modo==='intake'?'LEVANTAMIENTO INICIAL':esc(G.job.folio)+' · '+(G.tipo==='inicial'?'INICIAL':'SEGUIMIENTO')} · PASO ${G.paso+1} DE ${n} · v${VERSION}</div>
     ${G.modo!=='intake'?`<div class="mono" style="color:#C3D6F7">REPORTE DEL ${fmt(G.fecha)} · ${esc(antiguedad(G.job).txt.toUpperCase())}</div>`:''}
     <div class="disp" style="font-size:20px;line-height:1">${esc(prop)}</div>
     <div style="font-size:13px;color:#C3D6F7">${(G.modo==='intake'? (G.d.unidad?'Unit '+esc(G.d.unidad):'') : (G.job.unidad?'Unit '+esc(G.job.unidad):''))}</div></div>
@@ -3745,7 +3745,7 @@ async function abrirPropiedad(id){
 
 /* ==================== MAPA Y RUTAS ==================== */
 let MODO_MAPA='hoy', OPTIMIZAR=false, RUTA_PTS=[];
-const VERSION='68';
+const VERSION='69';
 let POST=null;
 let OSCURO=false;
 try{ OSCURO = localStorage.getItem('jr31_tema') !== 'claro'; }catch(e){ OSCURO=true; }
