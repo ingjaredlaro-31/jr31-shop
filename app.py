@@ -1964,7 +1964,7 @@ function shell(html){
       <main>${html}
         <footer><div class="n">Capri Restoration Services Inc</div><div class="s">REPORTS WORKS</div>
         <div class="s" style="margin-top:9px;letter-spacing:.14em">JULIO IBARRIA · ING. JARED RODRÍGUEZ</div>
-        <div class="s" style="margin-top:6px;opacity:.7">v66 · portal del cliente</div></footer>
+        <div class="s" style="margin-top:6px;opacity:.7">v67 · desplegables</div></footer>
       </main>
       ${EDIT()?`<button class="fab" id="fab" title="Nuevo">+</button><div id="fabm"></div>`:''}
       ${esTec?`<nav>${tabs.map(([k,t])=>`<button data-v="${k}" class="${V===k?'on':''}">${svgIC(k)}${t}${k==='pend'&&PEND?'<span class="dot"></span>':''}</button>`).join('')}</nav>`:''}
@@ -2523,7 +2523,7 @@ function pasosGuiado(){
         {k:'senalamiento', t:L('¿Pusiste señalamientos?','Safety signage placed?')}
       ]});
       if(d.vecinos_afectados) G.pasos.push({t:L('Unidades vecinas','Adjacent units'), s:L('Anota cuáles','Note which ones'), tipo:'vecinos'});
-      G.pasos.push({t:L('Datos del agua','Water details'), s:L('Fecha del daño y cuánta agua se sacó','Date of loss and how much water was extracted'), tipo:'agua'});
+      G.pasos.push({t:L('Datos del agua','Water details'), s:L('Categoría, fecha del daño y galones','Category, date of loss and gallons'), tipo:'agua'});
       G.pasos.push({t:L('¿Qué áreas se afectaron?','Which areas were affected?'), s:L('Toca todas las que apliquen','Tap all that apply'), tipo:'chips', k:'areas', cat:'acat', tabla:'areas_catalogo', req:true});
       G.pasos.push({t:L('¿Qué material removiste?','What material did you remove?'), s:L('Marca el material y anota su medida','Mark the material and enter its size'), tipo:'materiales'});
       G.pasos.push({t:L('¿Qué servicios se hicieron?','Which services were performed?'), s:L('Marca todos los que apliquen','Tap all that apply'), tipo:'chips', k:'servicios', cat:'scat', tabla:'servicios_catalogo', req:true});
@@ -2573,14 +2573,16 @@ function pintaGuiado(){
 
   if(p.tipo==='tiposerv'){
     const OPS=[
-      {k:'flood', t:L('Flood service','Flood service'), s:L('Hubo agua: extracción, secado y equipo','Water loss: extraction, drying and equipment')},
-      {k:'remediation', t:L('Remediation','Remediation'), s:L('Moho o contaminación: containment y limpieza','Mold or contamination: containment and cleaning')},
-      {k:'inspection', t:L('Inspection','Inspection'), s:L('Solo revisión y lecturas, sin demo','Inspection and readings only, no demo')},
+      {k:'flood', t:L('Flood service · hubo agua','Flood service · water loss'), s:L('Extracción, secado y equipo','Extraction, drying and equipment')},
+      {k:'remediation', t:L('Remediation · moho o contaminación','Remediation · mold or contamination'), s:L('Containment y limpieza','Containment and cleaning')},
+      {k:'inspection', t:L('Inspection · solo revisión','Inspection · assessment only'), s:L('Lecturas y fotos, sin demo','Readings and photos, no demo')},
       {k:'otro', t:L('Otro trabajo','Other work'), s:L('Cualquier otro servicio en sitio','Any other on-site service')}
     ];
-    cuerpo=`<div class="si-no" style="flex-direction:column;margin-top:8px">
-      ${OPS.map(o=>`<button data-ts="${o.k}" class="${d.tipo_servicio===o.k?'on':''}" style="padding:18px;text-align:left">
-        <div style="font-size:21px">${esc(o.t)}</div></button>`).join('')}</div>
+    cuerpo=`<label>${L('Tipo de trabajo','Type of job')}</label>
+      <select id="g1" style="font-size:18px;padding:15px 14px">
+        <option value="">${L('— escoge uno —','— select one —')}</option>
+        ${OPS.map(o=>`<option value="${o.k}" ${d.tipo_servicio===o.k?'selected':''}>${esc(o.t)}</option>`).join('')}
+      </select>
       <div class="sub" style="margin-top:12px">${esc((OPS.find(o=>o.k===d.tipo_servicio)||{}).s || L('Escoge para que la app te haga las preguntas correctas.','Pick one so the app asks the right questions.'))}</div>`;
   }
   else if(p.tipo==='hallazgos') cuerpo=`
@@ -2632,11 +2634,19 @@ function pintaGuiado(){
     <input id="g1" value="${esc(d.vecinos_detalle||'')}" placeholder="${L('Unit 327 y 329, pared compartida','Unit 327 and 329, shared wall')}" style="font-size:18px">
     <div class="sub" style="margin-top:8px">${L('Esto le sirve a oficina para avisarle al management de inmediato.','This helps the office notify the management right away.')}</div>`;
   else if(p.tipo==='agua') cuerpo=`
-    <div class="g2">
+    <label>${L('Categoría del agua','Water category')}</label>
+    <select id="g3" style="font-size:18px;padding:15px 14px">
+      <option value="">${L('— escoge una —','— select one —')}</option>
+      <option value="1" ${d.categoria_agua==='1'?'selected':''}>${L('Categoría 1 · agua limpia (tubería limpia)','Category 1 · clean water (clean supply line)')}</option>
+      <option value="2" ${d.categoria_agua==='2'?'selected':''}>${L('Categoría 2 · agua gris (lavadora, lavavajillas)','Category 2 · gray water (washer, dishwasher)')}</option>
+      <option value="3" ${d.categoria_agua==='3'?'selected':''}>${L('Categoría 3 · agua negra (drenaje, sewer)','Category 3 · black water (sewage, drain backup)')}</option>
+      <option value="?" ${d.categoria_agua==='?'?'selected':''}>${L('No estoy seguro','Not sure')}</option>
+    </select>
+    <div class="g2" style="margin-top:14px">
       <div><label>${L('Fecha del daño','Date of loss')}</label>
-        <input id="g1" type="date" value="${esc(d.fecha_dano||G.fecha)}" max="${hoy()}" style="font-size:19px"></div>
+        <input id="g1" type="date" value="${esc(d.fecha_dano||G.fecha)}" max="${hoy()}" style="font-size:18px"></div>
       <div><label>${L('Galones sacados','Gallons extracted')}</label>
-        <input id="g2" value="${esc(d.galones||'')}" placeholder="${d.agua_extraida?'30':'0'}" style="font-size:19px"></div>
+        <input id="g2" value="${esc(d.galones||'')}" placeholder="${d.agua_extraida?'30':'0'}" style="font-size:18px"></div>
     </div>
     <div class="sub" style="margin-top:10px">${L('Si el residente no sabe la fecha, pon el día que se reportó.','If the resident does not know the date, use the day it was reported.')}</div>`;
 
@@ -2784,10 +2794,13 @@ function pintaGuiado(){
       <label>${esc(m)}</label>
       <input id="med${i}" value="${esc(d.medidas[m]||'')}" placeholder="1 ft x 1 ft" style="font-size:17px">`).join('')}`;
   else if(p.tipo==='causa2') cuerpo=`
-    <div class="chips" id="gc2">${CAUSAS_BASE.map(x=>
-      `<button type="button" data-cz="${esc(x)}" class="${d.causa===x?'on':''}" style="font-size:16px;padding:12px 16px">${esc(x)}</button>`).join('')}</div>
-    <label>Explica con detalle</label>
-    <textarea id="g1" style="min-height:110px" placeholder="Se reventó la manguera del calentador en el closet del pasillo. El agua corrió a la cocina.">${esc(d.causa_detalle||'')}</textarea>`;
+    <label>${L('Fuente del daño','Source of the loss')}</label>
+    <select id="g2" style="font-size:18px;padding:15px 14px">
+      <option value="">${L('— escoge una —','— select one —')}</option>
+      ${CAUSAS_BASE.map(x=>`<option value="${esc(x)}" ${d.causa===x?'selected':''}>${esc(x)}</option>`).join('')}
+    </select>
+    <label>${L('Explica con detalle','Explain in detail')}</label>
+    <textarea id="g1" style="min-height:120px;font-size:17px" placeholder="${L('Se reventó la manguera del calentador en el closet del pasillo. El agua corrió a la cocina.','The water heater supply line burst in the hallway closet. Water ran into the kitchen.')}">${esc(d.causa_detalle||'')}</textarea>`;
   else if(p.tipo==='fechadano') cuerpo=`
     <label>Fecha aproximada del daño</label>
     <input id="g1" type="date" value="${esc(d.fecha_dano||G.fecha)}" max="${hoy()}" style="font-family:var(--mono);font-size:21px">
@@ -2884,10 +2897,10 @@ function pintaGuiado(){
     const pa=G.pasos[G.paso];
     if(pa.req && !G.d[pa.k].length) return toast('Marca al menos una opción.');
     if(pa.reqTexto && !G.d.notas.trim()) return toast('Escribe tu comentario de seguimiento.');
-    if(pa.tipo==='tiposerv' && !G.d.tipo_servicio) return toast(ING()?'Pick the type of job.':'Escoge el tipo de trabajo.');
+    if(pa.tipo==='tiposerv' && !G.d.tipo_servicio) return toast(ING()?'Select the type of job.':'Escoge el tipo de trabajo.');
     if(pa.reqTexto2 && !(G.d.hallazgos||'').trim()) return toast(ING()?'Write what you found.':'Escribe qué encontraste.');
     if(pa.tipo==='siguiente' && !(G.d.proximo_paso||[]).length) return toast(ING()?'Pick at least one next step.':'Marca al menos un paso siguiente.');
-    if(pa.tipo==='causa2' && !G.d.causa) return toast(ING()?'Pick what caused the loss.':'Escoge qué causó el daño.');
+    if(pa.tipo==='causa2' && !G.d.causa) return toast(ING()?'Select the source of the loss.':'Escoge la fuente del daño.');
 
     if(pa.tipo==='materiales' || pa.tipo==='medidas'){
       const falta=G.d.material_removido.find(m=>!(G.d.medidas[m]||'').trim());
@@ -2912,8 +2925,6 @@ function pintaGuiado(){
     }
   }
   // ---- Enganches: se aplican a lo que exista en pantalla, sin importar el paso ----
-  qs('[data-ts]').forEach(b=>b.onclick=()=>{
-    G.d.tipo_servicio=b.dataset.ts; const pa=G.paso; pasosGuiado(); G.paso=Math.min(pa,G.pasos.length-1); pintaGuiado(); });
 
   qs('#gps [data-ps]').forEach(b=>b.onclick=()=>{
     const v=b.dataset.ps; G.d.proximo_paso=G.d.proximo_paso||[];
@@ -2930,7 +2941,6 @@ function pintaGuiado(){
     pintaGuiado();
   });
 
-  qs('[data-cz]').forEach(b=>b.onclick=()=>{ G.d.causa=b.dataset.cz; pintaGuiado(); });
   qs('[data-sv]').forEach(b=>b.onclick=()=>{ G.d.tipo=b.dataset.sv; pintaGuiado(); });
   qs('[data-t]').forEach(b=>b.onclick=()=>{ G.tipo=b.dataset.t; pasosGuiado(); pintaGuiado(); });
   qs('[data-o]').forEach(b=>b.onclick=()=>{ G.d.ocupada=b.dataset.o; pintaGuiado(); });
@@ -2986,8 +2996,6 @@ function pintaGuiado(){
     (G.d.lecturas||[]).forEach(fila); if(!G.d.lecturas.length) fila();
     q1('#gaddl').onclick=()=>fila();
   }
-  if(p.tipo==='causa2') qs('[data-cz]').forEach(b=>b.onclick=()=>{
-    G.d.causa=b.dataset.cz; pintaGuiado(); });
   if(p.tipo==='servicio') qs('[data-sv]').forEach(b=>b.onclick=()=>{
     G.d.tipo=b.dataset.sv; pintaGuiado(); });
   if(p.tipo==='tipo') qs('[data-t]').forEach(b=>b.onclick=()=>{
@@ -3065,7 +3073,7 @@ function guardaPaso(){
       if(x){ d.propiedad_texto=x.nombre; d.direccion=x.direccion||''; d.ciudad=x.ciudad||'San Diego'; d.zip=x.zip||''; } }
   }
   if(p.tipo==='inicio2'){ d.hora_entrada=v('g1')||d.hora_entrada; d.hora_salida=v('g2')||''; }
-  if(p.tipo==='agua'){ d.fecha_dano=v('g1')||''; d.galones=v('g2')||''; }
+  if(p.tipo==='agua'){ d.fecha_dano=v('g1')||''; d.galones=v('g2')||''; d.categoria_agua=v('g3')||''; }
   if(p.tipo==='materiales'){
     d.material_removido.forEach((m,i)=>{ const val=v('med'+i); if(val!==null) d.medidas[m]=val.trim(); });
   }
@@ -3084,11 +3092,12 @@ function guardaPaso(){
   }
   if(p.tipo==='cierre2'){ d.notas=v('g2')||v('g1')||'';
     const c3=v('g3'); if(c3!==null) d.cobro_tecnico=c3; }
+  if(p.tipo==='tiposerv'){ const t=v('g1'); if(t!==null) d.tipo_servicio=t; }
   if(p.tipo==='hallazgos'){ d.hallazgos=v('g1')||''; }
   if(p.tipo==='siguiente'){ d.siguiente_trabajo=v('g1')||''; }
   if(p.tipo==='quienrepara'){ d.quien_repara=v('g1')||''; d.repara_detalle=v('g2')||''; }
   if(p.tipo==='vecinos'){ d.vecinos_detalle=v('g1')||''; }
-  if(p.tipo==='causa2'){ d.causa_detalle=v('g1')||''; }
+  if(p.tipo==='causa2'){ d.causa_detalle=v('g1')||''; const c=v('g2'); if(c!==null) d.causa=c; }
   if(p.tipo==='fechadano'){ d.fecha_dano=v('g1')||''; }
   if(p.tipo==='galones'){ d.galones=v('g1')||''; }
   if(p.tipo==='ambiente'){ d.temp_amb=v('g1')||''; d.hr_amb=v('g2')||''; }
@@ -3749,7 +3758,7 @@ async function abrirPropiedad(id){
 
 /* ==================== MAPA Y RUTAS ==================== */
 let MODO_MAPA='hoy', OPTIMIZAR=false, RUTA_PTS=[];
-const VERSION='66';
+const VERSION='67';
 let POST=null;
 let OSCURO=false;
 try{ OSCURO = localStorage.getItem('jr31_tema') !== 'claro'; }catch(e){ OSCURO=true; }
@@ -6432,12 +6441,6 @@ function accionGlobal(e){
       if(recalcular){ const pa=G.paso; pasosGuiado(); G.paso=Math.min(pa,G.pasos.length-1); }
       guardarBorrador(); pintaGuiado();
     };
-
-    const ts = el('data-ts');
-    if(ts){ e.preventDefault(); G.d.tipo_servicio=ts.dataset.ts; return repinta(true); }
-
-    const cz = el('data-cz');
-    if(cz){ e.preventDefault(); G.d.causa=cz.dataset.cz; return repinta(); }
 
     const rk = el('data-rk');
     if(rk){ e.preventDefault();
