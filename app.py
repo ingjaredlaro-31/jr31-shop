@@ -1583,11 +1583,6 @@ async function verJobTecnico(id){
 /* ==================== MARCAR QUE NO FUE ==================== */
 const CAUSAS_BASE = ['Supply line','Water heater','Toilet overflow','Sink / faucet','Dishwasher',
   'Washing machine','AC / condensation','Roof leak','Sewer backup','Pipe break','Fire / smoke','Otro'];
-const CATEGORIAS = [
-  {k:'1', t:'Categoría 1 · agua limpia', s:'De tubería limpia, sin contaminantes'},
-  {k:'2', t:'Categoría 2 · agua gris', s:'Lavadora, lavavajillas, sobreflujo con jabón'},
-  {k:'3', t:'Categoría 3 · agua negra', s:'Drenaje, sewer backup, agua de afuera'}
-];
 const MOTIVOS_BASE = [
   'No había nadie en la unidad',
   'El cliente no dio acceso',
@@ -1964,7 +1959,7 @@ function shell(html){
       <main>${html}
         <footer><div class="n">Capri Restoration Services Inc</div><div class="s">REPORTS WORKS</div>
         <div class="s" style="margin-top:9px;letter-spacing:.14em">JULIO IBARRIA · ING. JARED RODRÍGUEZ</div>
-        <div class="s" style="margin-top:6px;opacity:.7">v67 · desplegables</div></footer>
+        <div class="s" style="margin-top:6px;opacity:.7">v68 · sin categoría</div></footer>
       </main>
       ${EDIT()?`<button class="fab" id="fab" title="Nuevo">+</button><div id="fabm"></div>`:''}
       ${esTec?`<nav>${tabs.map(([k,t])=>`<button data-v="${k}" class="${V===k?'on':''}">${svgIC(k)}${t}${k==='pend'&&PEND?'<span class="dot"></span>':''}</button>`).join('')}</nav>`:''}
@@ -2523,7 +2518,7 @@ function pasosGuiado(){
         {k:'senalamiento', t:L('¿Pusiste señalamientos?','Safety signage placed?')}
       ]});
       if(d.vecinos_afectados) G.pasos.push({t:L('Unidades vecinas','Adjacent units'), s:L('Anota cuáles','Note which ones'), tipo:'vecinos'});
-      G.pasos.push({t:L('Datos del agua','Water details'), s:L('Categoría, fecha del daño y galones','Category, date of loss and gallons'), tipo:'agua'});
+      G.pasos.push({t:L('Datos del daño','Loss details'), s:L('Cuándo pasó y cuánta agua se sacó','When it happened and how much water was extracted'), tipo:'agua'});
       G.pasos.push({t:L('¿Qué áreas se afectaron?','Which areas were affected?'), s:L('Toca todas las que apliquen','Tap all that apply'), tipo:'chips', k:'areas', cat:'acat', tabla:'areas_catalogo', req:true});
       G.pasos.push({t:L('¿Qué material removiste?','What material did you remove?'), s:L('Marca el material y anota su medida','Mark the material and enter its size'), tipo:'materiales'});
       G.pasos.push({t:L('¿Qué servicios se hicieron?','Which services were performed?'), s:L('Marca todos los que apliquen','Tap all that apply'), tipo:'chips', k:'servicios', cat:'scat', tabla:'servicios_catalogo', req:true});
@@ -2634,15 +2629,7 @@ function pintaGuiado(){
     <input id="g1" value="${esc(d.vecinos_detalle||'')}" placeholder="${L('Unit 327 y 329, pared compartida','Unit 327 and 329, shared wall')}" style="font-size:18px">
     <div class="sub" style="margin-top:8px">${L('Esto le sirve a oficina para avisarle al management de inmediato.','This helps the office notify the management right away.')}</div>`;
   else if(p.tipo==='agua') cuerpo=`
-    <label>${L('Categoría del agua','Water category')}</label>
-    <select id="g3" style="font-size:18px;padding:15px 14px">
-      <option value="">${L('— escoge una —','— select one —')}</option>
-      <option value="1" ${d.categoria_agua==='1'?'selected':''}>${L('Categoría 1 · agua limpia (tubería limpia)','Category 1 · clean water (clean supply line)')}</option>
-      <option value="2" ${d.categoria_agua==='2'?'selected':''}>${L('Categoría 2 · agua gris (lavadora, lavavajillas)','Category 2 · gray water (washer, dishwasher)')}</option>
-      <option value="3" ${d.categoria_agua==='3'?'selected':''}>${L('Categoría 3 · agua negra (drenaje, sewer)','Category 3 · black water (sewage, drain backup)')}</option>
-      <option value="?" ${d.categoria_agua==='?'?'selected':''}>${L('No estoy seguro','Not sure')}</option>
-    </select>
-    <div class="g2" style="margin-top:14px">
+    <div class="g2">
       <div><label>${L('Fecha del daño','Date of loss')}</label>
         <input id="g1" type="date" value="${esc(d.fecha_dano||G.fecha)}" max="${hoy()}" style="font-size:18px"></div>
       <div><label>${L('Galones sacados','Gallons extracted')}</label>
@@ -3073,7 +3060,7 @@ function guardaPaso(){
       if(x){ d.propiedad_texto=x.nombre; d.direccion=x.direccion||''; d.ciudad=x.ciudad||'San Diego'; d.zip=x.zip||''; } }
   }
   if(p.tipo==='inicio2'){ d.hora_entrada=v('g1')||d.hora_entrada; d.hora_salida=v('g2')||''; }
-  if(p.tipo==='agua'){ d.fecha_dano=v('g1')||''; d.galones=v('g2')||''; d.categoria_agua=v('g3')||''; }
+  if(p.tipo==='agua'){ d.fecha_dano=v('g1')||''; d.galones=v('g2')||''; }
   if(p.tipo==='materiales'){
     d.material_removido.forEach((m,i)=>{ const val=v('med'+i); if(val!==null) d.medidas[m]=val.trim(); });
   }
@@ -3758,7 +3745,7 @@ async function abrirPropiedad(id){
 
 /* ==================== MAPA Y RUTAS ==================== */
 let MODO_MAPA='hoy', OPTIMIZAR=false, RUTA_PTS=[];
-const VERSION='67';
+const VERSION='68';
 let POST=null;
 let OSCURO=false;
 try{ OSCURO = localStorage.getItem('jr31_tema') !== 'claro'; }catch(e){ OSCURO=true; }
