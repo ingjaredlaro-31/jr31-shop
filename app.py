@@ -1542,7 +1542,9 @@ async function vTecReporte(){
         <button class="btn ghost sm" data-vj="${j.id}">Ver trabajo</button>
         <span style="flex:1"></span>
         ${rHoy?'':`<button class="btn ghost" data-nf="${j.id}" data-f="${h}">No fui</button>`}
-        ${!tieneIni[j.id]?`<button class="btn rojo" data-rgi="${j.id}" data-f="${h}">Levantar inicial</button>`:''}
+        ${(()=>{const b=leerBorrador(j.id,h,'job');
+          return b?`<span class="chip ambar">${ING()?'DRAFT SAVED':'BORRADOR GUARDADO'}</span>`:'';})()}
+        ${!tieneIni[j.id]?`<button class="btn rojo" data-rgi="${j.id}" data-f="${h}">${ING()?'Initial report':'Levantar inicial'}</button>`:''}
         <button class="btn" data-rg="${j.id}" data-f="${h}">${rHoy?'Corregir':'Reporte de hoy'}</button>
       </div></div>`;
   };
@@ -1740,7 +1742,7 @@ function shell(html){
       <main>${html}
         <footer><div class="n">Capri Restoration Services Inc</div><div class="s">REPORTS WORKS</div>
         <div class="s" style="margin-top:9px;letter-spacing:.14em">JULIO IBARRIA · ING. JARED RODRÍGUEZ</div>
-        <div class="s" style="margin-top:6px;opacity:.7">v64 · bilingüe y recordatorios</div></footer>
+        <div class="s" style="margin-top:6px;opacity:.7">v65 · avance guardado</div></footer>
       </main>
       ${EDIT()?`<button class="fab" id="fab" title="Nuevo">+</button><div id="fabm"></div>`:''}
       ${esTec?`<nav>${tabs.map(([k,t])=>`<button data-v="${k}" class="${V===k?'on':''}">${svgIC(k)}${t}${k==='pend'&&PEND?'<span class="dot"></span>':''}</button>`).join('')}</nav>`:''}
@@ -2132,7 +2134,7 @@ async function formReporte(jobId,fecha){
       const nuevas=[...new Set((j.areas||[]).concat(AREAS))];
       await sb.from('jobs').update({areas:nuevas,ocupada:OC}).eq('id',jobId);
     }
-    cerrar(); toast('Reporte enviado'); render();
+    borrarBorrador(); cerrar(); toast(ING()?'Report sent':'Reporte enviado'); render();
   };
 }
 
@@ -2188,6 +2190,7 @@ async function reporteGuiado(jobId, fecha, tipoForzado, tecOverride){
     : (hayInicial
       ? `El inicial se levantó el ${fmt(iniPrevio.fecha)}${iniPrevio.usuarios?.nombre?' por '+iniPrevio.usuarios.nombre:''}. Aquí reportas cómo va hoy.`
       : 'Este trabajo todavía no tiene reporte inicial. Levanta toda la información del sitio.');
+  const bor = leerBorrador(jobId, fecha, 'job');
   G = {
     job:j, fecha, paso:0, prev:!!prev, tipo:tipoAuto, info:infoIni, tid:TID, hayInicial,
     acat:(acat||[]).map(x=>x.nombre), mcat:(mcat||[]).map(x=>x.nombre), scat:(scat||[]).map(x=>x.nombre),
@@ -2226,6 +2229,17 @@ async function reporteGuiado(jobId, fecha, tipoForzado, tecOverride){
   G.scat=[...new Set(G.scat.concat(G.d.servicios))];
   G.qcat=[...new Set(G.qcat.concat(G.d.situacion))];
   pasosGuiado();
+  if(bor && bor.d && !prev){
+    const cont = confirm(ING()
+      ? 'You have an unfinished report for this job. Continue where you left off?'
+      : 'Tienes un reporte a medias de este trabajo. ¿Continuar donde te quedaste?');
+    if(cont){
+      G.d = Object.assign(G.d, bor.d);
+      if(bor.tipo) G.tipo = bor.tipo;
+      pasosGuiado();
+      G.paso = Math.min(bor.paso||0, G.pasos.length-1);
+    } else borrarBorrador();
+  }
   pintaGuiado();
 }
 
@@ -2396,7 +2410,7 @@ function pintaGuiado(){
     <input id="g1" value="${esc(d.vecinos_detalle||'')}" placeholder="${L('Unit 327 y 329, pared compartida','Unit 327 and 329, shared wall')}" style="font-size:18px">
     <div class="sub" style="margin-top:8px">${L('Esto le sirve a oficina para avisarle al management de inmediato.','This helps the office notify the management right away.')}</div>`;
   else if(p.tipo==='agua') cuerpo=`
-    <label>${L('Categoría del agua','Water category')}</label>
+    <label>${L('Categoría del agua · opcional','Water category · optional')}</label>
     <div class="si-no" style="flex-direction:column">
       ${CATEGORIAS.map(x=>`<button data-cat="${x.k}" class="${d.categoria_agua===x.k?'on':''}" style="padding:15px;text-align:left">
         ${en?('Category '+x.k+' · '+(x.k==='1'?'clean water':x.k==='2'?'gray water':'black water')):esc(x.t)}</button>`).join('')}
@@ -2634,9 +2648,11 @@ function pintaGuiado(){
       ${cuerpo}
       <div style="height:22px"></div>
       <div class="row">
-        ${G.paso>0?`<button class="btn ghost" style="flex:1" id="gprev">${T('Atrás')}</button>`:''}
-        <button class="btn" style="flex:2" id="gnext">${G.paso===n-1?(G.prev?T('Guardar cambios'):T('Enviar reporte')):T('Siguiente')}</button>
+        <button class="btn ghost" style="flex:1" id="gprev" ${G.paso===0?'disabled style="flex:1;opacity:.4"':''}>‹ ${T('Atrás')}</button>
+        <button class="btn" style="flex:2" id="gnext">${G.paso===n-1?(G.prev?T('Guardar cambios'):T('Enviar reporte')):T('Siguiente')+' ›'}</button>
       </div>
+      <div class="sub" style="text-align:center;margin-top:9px;font-size:13.5px">
+        ${ING()?'Your progress saves automatically. You can close and come back.':'Tu avance se guarda solo. Puedes cerrar y volver.'}</div>
       <div style="height:12px"></div>
       <button class="btn ghost wide" id="gform">Usar formulario completo</button>
     </div></div>`;
@@ -2648,7 +2664,8 @@ function pintaGuiado(){
   const gf=q1('#gform');
   if(G.modo==='intake'){ gf.style.display='none'; }
   else gf.onclick=()=>{ const j=G.job.id, f=G.fecha; cerrar(); formReporte(j,f); };
-  const prev=q1('#gprev'); if(prev) prev.onclick=()=>{guardaPaso();G.paso--;pintaGuiado();};
+  const prev=q1('#gprev');
+  if(prev) prev.onclick=()=>{ if(G.paso===0) return; guardaPaso(); G.paso--; guardarBorrador(); pintaGuiado(); };
   q1('#gnext').onclick=async()=>{
     guardaPaso();
     const pa=G.pasos[G.paso];
@@ -2658,7 +2675,7 @@ function pintaGuiado(){
     if(pa.reqTexto2 && !(G.d.hallazgos||'').trim()) return toast(ING()?'Write what you found.':'Escribe qué encontraste.');
     if(pa.tipo==='siguiente' && !(G.d.proximo_paso||[]).length) return toast(ING()?'Pick at least one next step.':'Marca al menos un paso siguiente.');
     if(pa.tipo==='causa2' && !G.d.causa) return toast(ING()?'Pick what caused the loss.':'Escoge qué causó el daño.');
-    if(pa.tipo==='agua' && !G.d.categoria_agua) return toast(ING()?'Pick the water category.':'Escoge la categoría del agua.');
+
     if(pa.tipo==='materiales' || pa.tipo==='medidas'){
       const falta=G.d.material_removido.find(m=>!(G.d.medidas[m]||'').trim());
       if(falta) return toast((ING()?'Missing size for ':'Falta la medida de ')+falta);
@@ -2669,7 +2686,7 @@ function pintaGuiado(){
     }
     if(pa.tipo==='unidad' && !G.d.unidad) return toast('Pon el número de unidad.');
     if(G.paso===G.pasos.length-1) return G.modo==='intake' ? enviarLevantamiento() : enviarGuiado();
-    G.paso++; pintaGuiado();
+    G.paso++; guardarBorrador(); pintaGuiado();
   };
 
   if(p.tipo==='ubicacion'){
@@ -2927,7 +2944,7 @@ async function enviarGuiado(){
     const nuevas=[...new Set((G.job.areas||[]).concat(d.areas))];
     await sb.from('jobs').update({areas:nuevas, ocupada:d.ocupada}).eq('id',jobId);
   }
-  cerrar(); toast('Reporte enviado'); render();
+  borrarBorrador(); cerrar(); toast(ING()?'Report sent':'Reporte enviado'); render();
 }
 
 /* ==================== REPORTE EN FORMATO DE CAMPO ==================== */
@@ -6115,6 +6132,30 @@ window.addEventListener('unhandledrejection', ev=>{
   try{ toast('Error: '+((ev.reason&&ev.reason.message)||ev.reason||'').toString().slice(0,90)); }catch(x){}
 });
 
+/* Borrador: guarda el avance por si se cierra el reporte a medias */
+function claveBorrador(){
+  if(!G) return null;
+  return 'jr31_bor_' + (U?U.id:'x') + '_' + (G.modo==='intake' ? 'intake' : (G.job?G.job.id:'x')) + '_' + G.fecha;
+}
+function guardarBorrador(){
+  try{
+    const k=claveBorrador(); if(!k) return;
+    localStorage.setItem(k, JSON.stringify({paso:G.paso, tipo:G.tipo, d:G.d, ts:Date.now()}));
+  }catch(e){}
+}
+function leerBorrador(jobId, fecha, modo){
+  try{
+    const k='jr31_bor_'+(U?U.id:'x')+'_'+(modo==='intake'?'intake':jobId)+'_'+fecha;
+    const raw=localStorage.getItem(k); if(!raw) return null;
+    const b=JSON.parse(raw);
+    if(Date.now()-(b.ts||0) > 1000*60*60*72){ localStorage.removeItem(k); return null; }
+    return b;
+  }catch(e){ return null; }
+}
+function borrarBorrador(){
+  try{ const k=claveBorrador(); if(k) localStorage.removeItem(k); }catch(e){}
+}
+
 /* Acciones globales: funcionan sin importar cuándo se pinte la pantalla */
 document.addEventListener('click', e=>{
   if(!U) return;
@@ -6125,6 +6166,76 @@ function accionGlobal(e){
   const el = k => e.target.closest('['+k+']');
   const idEl = id => e.target.closest('#'+id);
   const F = () => hoy();
+
+  // ===== Controles del cuestionario · siempre responden =====
+  const enCuest = G && G.pasos && document.getElementById('gnext');
+  if(enCuest){
+    const paso = G.pasos[G.paso] || {};
+    const repinta = (recalcular) => {
+      if(recalcular){ const pa=G.paso; pasosGuiado(); G.paso=Math.min(pa,G.pasos.length-1); }
+      guardarBorrador(); pintaGuiado();
+    };
+
+    const cat = el('data-cat');
+    if(cat){ e.preventDefault(); G.d.categoria_agua=cat.dataset.cat; return repinta(); }
+
+    const ts = el('data-ts');
+    if(ts){ e.preventDefault(); G.d.tipo_servicio=ts.dataset.ts; return repinta(true); }
+
+    const cz = el('data-cz');
+    if(cz){ e.preventDefault(); G.d.causa=cz.dataset.cz; return repinta(); }
+
+    const rk = el('data-rk');
+    if(rk){ e.preventDefault();
+      const k=rk.dataset.rk, val=rk.dataset.rv==='1';
+      if(k==='ocupada_b') G.d.ocupada = val?'ocupada':'vacia'; else G.d[k]=val;
+      return repinta(k==='vecinos_afectados'||k==='agua_extraida'); }
+
+    const ps = el('data-ps');
+    if(ps){ e.preventDefault();
+      const v=ps.dataset.ps; G.d.proximo_paso=G.d.proximo_paso||[];
+      const i=G.d.proximo_paso.indexOf(v);
+      if(i>=0) G.d.proximo_paso.splice(i,1); else G.d.proximo_paso.push(v);
+      return repinta(true); }
+
+    const tt = el('data-t');
+    if(tt){ e.preventDefault(); G.tipo=tt.dataset.t; pasosGuiado(); return repinta(); }
+
+    const oo = el('data-o');
+    if(oo){ e.preventDefault(); G.d.ocupada=oo.dataset.o; return repinta(); }
+
+    const svv = el('data-sv');
+    if(svv){ e.preventDefault(); G.d.tipo=svv.dataset.sv; return repinta(); }
+
+    const bb = el('data-b');
+    if(bb){ e.preventDefault();
+      const val = bb.dataset.b==='1';
+      if(bb.closest('#q_ah2')) G.d.after_hours=val;
+      else if(paso.k) G.d[paso.k]=val;
+      return repinta(paso.k==='agua_extraida'); }
+
+    const cc = el('data-c');
+    if(cc){ e.preventDefault();
+      const k = paso.k || 'material_removido';
+      const v = cc.dataset.c, arr = G.d[k] || (G.d[k]=[]), i=arr.indexOf(v);
+      if(i>=0) arr.splice(i,1); else arr.push(v);
+      return repinta(k==='material_removido'||k==='areas'); }
+
+    const addC = el('data-add');
+    if(addC){ e.preventDefault();
+      const nombre=prompt(ING()?'Type the name:':'Escribe el nombre:');
+      if(!nombre||!nombre.trim()) return;
+      const v=nombre.trim(), k=paso.k||'material_removido';
+      const listaCat = paso.cat ? G[paso.cat] : G.mcat;
+      const tabla = paso.tabla || 'materiales_catalogo';
+      if(listaCat && !listaCat.includes(v)){ listaCat.push(v); sb.from(tabla).insert({nombre:v}).then(()=>{},()=>{}); }
+      G.d[k]=G.d[k]||[]; if(!G.d[k].includes(v)) G.d[k].push(v);
+      return repinta(true); }
+
+    const qf = el('data-qf');
+    if(qf){ e.preventDefault();
+      G.d.fotos=G.d.fotos.filter(f=>fotoU(f)!==qf.dataset.qf); return repinta(); }
+  }
 
   const ir = el('data-ir');
   if(ir){ e.preventDefault(); const d=ir.dataset.ir;
