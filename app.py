@@ -1959,7 +1959,7 @@ function shell(html){
       <main>${html}
         <footer><div class="n">Capri Restoration Services Inc</div><div class="s">REPORTS WORKS</div>
         <div class="s" style="margin-top:9px;letter-spacing:.14em">JULIO IBARRIA · ING. JARED RODRÍGUEZ</div>
-        <div class="s" style="margin-top:6px;opacity:.7">v69 · sin categoría</div></footer>
+        <div class="s" style="margin-top:6px;opacity:.7">v70 · verificado</div></footer>
       </main>
       ${EDIT()?`<button class="fab" id="fab" title="Nuevo">+</button><div id="fabm"></div>`:''}
       ${esTec?`<nav>${tabs.map(([k,t])=>`<button data-v="${k}" class="${V===k?'on':''}">${svgIC(k)}${t}${k==='pend'&&PEND?'<span class="dot"></span>':''}</button>`).join('')}</nav>`:''}
@@ -2129,7 +2129,8 @@ async function vTecHist(){
 let FOT=[];
 const ZIPPERS=['no zipper','1 zipper','2 zippers','3 zippers'];
 
-async function formReporte(jobId,fecha){
+async function formReporte(jobId,fecha,tecOverride){
+  const TID = tecOverride || U.id;
   const [{data:j},{data:prev},{data:acat},{data:mcat},{data:scat}] = await Promise.all([
     sb.from('jobs').select('*, managements(nombre), propiedades(nombre)').eq('id',jobId).single(),
     sb.from('reportes').select('*').eq('job_id',jobId).eq('tecnico_id',TID).eq('fecha',fecha).maybeSingle(),
@@ -2718,8 +2719,10 @@ function pintaGuiado(){
     </div>
     <div class="${G.tipo==='inicial'?'alerta':'ok'}" style="margin-top:12px">
       <div class="t">${G.tipo==='inicial'
-      ? 'Levantamiento completo: causa del daño, categoría del agua, extracción con galones, áreas, medidas de lo removido, containment, equipo, lecturas y fotos.'
-      : 'Visita corta: cómo está el trabajo hoy, lecturas, equipo y qué sigue.'}</div></div>`;
+      ? (ING()?'Full assessment: cause of loss, extraction with gallons, areas, measurements of removed material, containment, equipment, readings and photos.'
+             : 'Levantamiento completo: causa del daño, extracción con galones, áreas, medidas de lo removido, containment, equipo, lecturas y fotos.')
+      : (ING()?'Short visit: how the job is today, readings, equipment and what comes next.'
+             : 'Visita corta: cómo está el trabajo hoy, lecturas, equipo y qué sigue.')}</div></div>`;
   else if(p.tipo==='horas') cuerpo=`
     <label>Hora de llegada</label><input id="g1" type="time" value="${esc(d.hora_entrada)}" style="font-size:22px">
     <label>Hora de salida (si ya sabes)</label><input id="g2" type="time" value="${esc(d.hora_salida)}" style="font-size:22px">`;
@@ -2876,7 +2879,7 @@ function pintaGuiado(){
   $('#gx').onclick=cerrar;
   const gf=q1('#gform');
   if(G.modo==='intake'){ gf.style.display='none'; }
-  else gf.onclick=()=>{ const j=G.job.id, f=G.fecha; cerrar(); formReporte(j,f); };
+  else gf.onclick=()=>{ const j=G.job.id, f=G.fecha, t=G.tid; cerrar(); formReporte(j,f,t); };
   const prev=q1('#gprev');
   if(prev) prev.onclick=()=>{ if(G.paso===0) return; guardaPaso(); G.paso--; guardarBorrador(); pintaGuiado(); };
   q1('#gnext').onclick=async()=>{
@@ -3745,7 +3748,7 @@ async function abrirPropiedad(id){
 
 /* ==================== MAPA Y RUTAS ==================== */
 let MODO_MAPA='hoy', OPTIMIZAR=false, RUTA_PTS=[];
-const VERSION='69';
+const VERSION='70';
 let POST=null;
 let OSCURO=false;
 try{ OSCURO = localStorage.getItem('jr31_tema') !== 'claro'; }catch(e){ OSCURO=true; }
